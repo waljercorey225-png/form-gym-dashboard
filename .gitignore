@@ -1,0 +1,17 @@
+# This repo is public and this folder holds personal data and other projects,
+# so everything is ignored unless it is explicitly allowed below.
+/*
+!/.gitignore
+!/.github/
+!/README.md
+!/index.html
+!/build-site.ps1
+!/cloud-config.example.js
+!/form-icon.ico
+!/local-server.ps1
+!/start-local-app.ps1
+!/start-local-server.cmd
+!/supabase/
+
+# Contains real step and session records.
+/supabase/import-existing-data.sql

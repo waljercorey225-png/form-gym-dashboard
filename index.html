@@ -1,0 +1,2586 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0D262D">
+  <title>FORM — Training dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      /* Palette: deep night background, teal = good, burnished amber = negative and fills, parchment = highlights. */
+      --night: #0D262D;
+      --teal: #436167;
+      --umber: #725B4B;
+      --amber: #C07E50;
+      --parchment: #D8C0A0;
+      --paper: var(--night);
+      --white: #123039;
+      --ink: #EFE5D4;
+      --muted: #A8977E;
+      --line: #24454D;
+      --lime: var(--parchment);
+      --orange: var(--parchment);
+      --blue: var(--parchment);
+      --mono: "DM Mono", monospace;
+      --sans: "Manrope", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--sans); font-size: 14px; }
+    button { color: inherit; font: inherit; cursor: pointer; }
+    .shell { max-width: 1440px; min-height: 100vh; margin: auto; padding: 0 48px 60px; }
+    .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .brand { color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; letter-spacing: 0; }
+    .brand-mark { width: 27px; height: 27px; display: grid; place-items: center; background: var(--lime); color: var(--night); border-radius: 50%; font-size: 14px; }
+    .nav { display: flex; align-items: center; gap: 30px; height: 100%; }
+    .nav a { height: 100%; display: flex; align-items: center; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; font-size: 13px; font-weight: 700; }
+    .nav a.active, .nav a:hover { color: var(--ink); border-color: var(--orange); }
+    .profile { display: flex; align-items: center; gap: 11px; font-weight: 700; }
+    .avatar { display: grid; place-items: center; width: 34px; aspect-ratio: 1; border-radius: 50%; background: #3A2A1E; color: #D8C0A0; font-size: 12px; }
+    main { padding-top: 35px; }
+    .welcome { display: flex; justify-content: space-between; align-items: end; margin-bottom: 28px; }
+    .eyebrow { color: var(--muted); font: 11px var(--mono); letter-spacing: 0; text-transform: uppercase; }
+    h1 { margin: 7px 0 0; font-size: clamp(29px, 3.3vw, 42px); line-height: 1.12; letter-spacing: 0; }
+    .date { color: var(--muted); font: 11px var(--mono); text-transform: uppercase; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, .8fr); gap: 22px; align-items: start; }
+    .primary, .aside { min-width: 0; }
+    .week-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 22px; }
+    .day { min-height: 73px; padding: 10px 8px 8px; border: 1px solid var(--line); border-radius: 5px; background: transparent; text-align: center; transition: background .18s, border-color .18s; }
+    .day:hover { border-color: var(--ink); }
+    .day.selected { background: var(--amber); border-color: var(--parchment); color: var(--night); }
+    .day.completed:not(.selected) { background: #33261C; border-color: #8A5A3A; color: #8FB3B8; }
+    .day-label { display: block; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+    .selected .day-label { color: #C4B59E; }
+    .day-num { display: block; margin-top: 8px; font-size: 17px; font-weight: 700; }
+    .section-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; }
+    h2 { margin: 0; font-size: 16px; font-weight: 800; }
+    .section-note { color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+    .workout-feature { min-height: 218px; display: grid; grid-template-columns: 1.1fr .9fr; overflow: hidden; margin-bottom: 24px; border-radius: 5px; background: linear-gradient(115deg, #0F3038, #0F2B33 57%, #2B2722); color: #fff; }
+    .feature-copy { display: flex; flex-direction: column; align-items: flex-start; padding: 25px 27px; }
+    .feature-copy .eyebrow { color: #D8C0A0; }
+    .feature-copy h2 { margin-top: 12px; font-size: 27px; line-height: 1.14; letter-spacing: 0; }
+    .feature-copy p { margin: 9px 0 17px; color: #C4B59E; font-size: 12px; }
+    .feature-image { min-height: 218px; background: linear-gradient(90deg, #0F3038 0%, rgb(13 38 45 / 12%) 48%, rgb(114 91 75 / 22%) 100%), url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1000&q=85") center 52% / cover; }
+    .button { min-height: 39px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 15px; border: 0; border-radius: 3px; background: var(--amber); color: var(--night); font-size: 12px; font-weight: 800; transition: transform .15s, background .15s; }
+    .button:hover { transform: translateY(-1px); background: #CF9064; }
+    .button.dark { background: var(--amber); color: var(--night); }
+    .button.dark:hover { background: #D8C0A0; }
+    .button.finish { background: transparent; color: var(--ink); border: 1px solid #5B6F70; }
+    .button.finish:hover { background: #1A3B43; }
+    .button[hidden] { display: none; }
+    .button:disabled { cursor: default; opacity: .5; transform: none; }
+    .exercise-list { border-top: 1px solid var(--line); }
+    .exercise { min-height: 71px; display: grid; grid-template-columns: 36px minmax(0, 1fr) 216px 66px 20px; align-items: center; gap: 12px; padding: 10px 4px; border-bottom: 1px solid var(--line); transition: opacity .2s; }
+    .exercise.done .exercise-name { text-decoration: line-through; color: var(--muted); }
+    .exercise.done .exercise-index { background: #1F3A3E; color: #8FB3B8; }
+    .exercise-index { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #16353D; color: var(--muted); font: 10px var(--mono); }
+    .exercise-name { font-size: 13px; font-weight: 800; }
+    .exercise-meta { margin-top: 4px; color: var(--muted); font: 10px var(--mono); }
+    .exercise-muscle { color: var(--muted); font-size: 11px; }
+    .exercise-weight { width: 100%; height: 33px; padding: 0 7px; border: 1px solid var(--umber); border-radius: 3px; background: var(--parchment); color: var(--night); font: 11px var(--mono); font-weight: 500; color-scheme: light; }
+    .exercise-weight:focus { outline: 2px solid var(--amber); outline-offset: 0; border-color: var(--amber); }
+    .exercise-weight::placeholder { color: #9C8770; }
+    .exercise-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .exercise-field { display: grid; gap: 3px; }
+    .exercise-field span { color: var(--muted); font: 8px var(--mono); text-transform: uppercase; }
+    .check { appearance: none; width: 21px; height: 21px; display: grid; place-content: center; margin: 0; border: 1px solid var(--umber); border-radius: 3px; background: var(--parchment); cursor: pointer; }
+    .check:checked { background: var(--amber); border-color: var(--amber); }
+    .check:checked::after { content: "✓"; color: var(--night); font-size: 14px; font-weight: 800; line-height: 1; }
+    .check:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+    .today-cardio { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(100px, 130px) auto; align-items: end; gap: 12px; max-width: 620px; margin: 0 0 24px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .today-cardio-title { grid-column: 1 / -1; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+    .today-cardio .control-field { min-width: 0; }
+    .today-cardio .button { min-height: 40px; }
+    .delete-log { min-width: 34px; min-height: 32px; border: 1px solid #6B4A33; border-radius: 3px; background: transparent; color: #C07E50; font-size: 12px; }
+    .delete-log:hover { background: #3A2A1E; }
+    .aside-card { padding: 21px; border: 1px solid var(--line); border-radius: 5px; background: var(--white); }
+    .aside-card + .aside-card { margin-top: 15px; }
+    .card-top { display: flex; align-items: center; justify-content: space-between; }
+    .tag { padding: 6px 8px; border-radius: 2px; background: #3A2A1E; color: #C07E50; font: 9px var(--mono); text-transform: uppercase; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 12px; margin-top: 20px; }
+    .stat-label { color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+    .stat-number { margin-top: 6px; font-size: 26px; font-weight: 800; line-height: 1; }
+    .stat-unit { margin-left: 3px; color: var(--muted); font-size: 11px; font-weight: 600; }
+    .progress-track { height: 6px; overflow: hidden; margin-top: 18px; border-radius: 9px; background: #24454D; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--blue); transition: width .25s; }
+    .progress-copy { display: flex; justify-content: space-between; margin-top: 8px; color: var(--muted); font: 10px var(--mono); }
+    .streak-card { overflow: hidden; position: relative; background: linear-gradient(135deg, #33261C, #1E2A2A); border-color: #5A4130; }
+    .streak-card::after { content: "✳"; position: absolute; right: 13px; bottom: -32px; color: #4A3828; font-size: 116px; line-height: 1; }
+    .streak-card .eyebrow { color: #D8C0A0; }
+    .streak-card h2 { margin-top: 17px; max-width: 190px; font-size: 19px; line-height: 1.25; }
+    .streak-card p { margin: 8px 0 0; color: #C4B59E; font-size: 11px; }
+    .history { padding: 36px 0 4px; }
+    .history-head { display: flex; align-items: end; justify-content: space-between; margin-bottom: 14px; }
+    .history-head h2 { font-size: 20px; }
+    .history-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .history-item { min-height: 99px; display: flex; flex-direction: column; justify-content: center; padding: 13px 18px; border-right: 1px solid var(--line); }
+    .history-item:first-child { padding-left: 0; }
+    .history-item:last-child { border-right: 0; }
+    .history-number { font-size: 24px; font-weight: 800; }
+    .history-label { margin-top: 4px; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+    .steps-panel { margin: 18px 0 24px; padding: 18px 0 15px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .steps-panel-head { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
+    .steps-panel-head h3 { margin: 6px 0 0; font-size: 16px; }
+    .steps-total { text-align: right; }
+    .steps-total strong { display: block; color: var(--ink); font-size: 21px; }
+    .steps-total span { color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .steps-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 17px; }
+    .steps-summary-item { padding-top: 10px; border-top: 1px solid var(--line); }
+    .steps-summary-value { font-size: 17px; font-weight: 800; }
+    .steps-summary-label { margin-top: 4px; color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .steps-chart { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; margin-top: 17px; }
+    .steps-day { min-width: 0; text-align: center; }
+    .steps-day-label { color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .steps-day-count { min-height: 14px; margin-top: 4px; color: #E3D6C2; font: 9px var(--mono); }
+    .steps-track { position: relative; height: 112px; display: flex; align-items: end; justify-content: center; margin: 7px auto 0; }
+    .steps-goal-marker { position: absolute; z-index: 1; right: 0; left: 0; border-top: 1px dashed #D8C0A0; }
+    .steps-bar { width: min(26px, 62%); min-height: 2px; border-radius: 2px 2px 0 0; background: linear-gradient(180deg, #CF9064, var(--amber)); }
+    .steps-bar.met { background: linear-gradient(180deg, #6F9298, var(--teal)); }
+    .steps-day-date { margin-top: 6px; color: var(--muted); font: 9px var(--mono); }
+    .steps-legend { display: flex; justify-content: center; gap: 18px; margin-top: 13px; color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .steps-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .steps-legend-bar { width: 8px; height: 8px; border-radius: 2px; background: var(--blue); }
+    .steps-legend-goal { width: 12px; border-top: 1px dashed var(--orange); }
+    .steps-empty { grid-column: 1 / -1; padding: 24px 0; color: var(--muted); font-size: 12px; text-align: center; }
+    .layout.today-layout { grid-template-columns: minmax(0, 1fr); max-width: 960px; }
+    .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin: 36px 0 22px; }
+    .page-heading h1 { margin-top: 7px; font-size: 32px; }
+    .training-controls { display: grid; grid-template-columns: minmax(180px, .45fr) minmax(240px, 1fr); gap: 15px; max-width: 740px; margin-bottom: 22px; }
+    .control-field { display: grid; gap: 7px; color: var(--muted); font: 10px var(--mono); text-transform: uppercase; }
+    .control-field .access-input { text-transform: none; }
+    .training-workspace { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: 28px; align-items: start; }
+    .catalog-panel, .log-history, .metric-table-section { min-width: 0; }
+    .catalog-list { border-top: 1px solid var(--line); }
+    .catalog-row { width: 100%; min-height: 58px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 9px 10px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); text-align: left; }
+    .catalog-row:hover, .catalog-row.selected { background: #163A42; }
+    .catalog-row.selected { box-shadow: inset 2px 0 #D8C0A0; }
+    .catalog-name { display: block; font-size: 12px; font-weight: 800; }
+    .catalog-details { display: block; margin-top: 4px; color: var(--muted); font: 9px var(--mono); }
+    .catalog-category { color: #D8C0A0; font: 9px var(--mono); text-transform: uppercase; }
+    .log-panel { position: sticky; top: 16px; }
+    .log-panel h2 { margin-top: 7px; font-size: 20px; }
+    .exercise-log-form { display: grid; gap: 8px; margin-top: 17px; }
+    .exercise-log-form label { margin-top: 4px; color: #E0D2BC; font-size: 10px; font-weight: 700; }
+    .log-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 10px; }
+    .log-fields label { grid-column: 1 / -1; }
+    .field-optional { margin-left: 5px; color: var(--muted); font-weight: 400; }
+    .exercise-log-form .button { margin-top: 8px; }
+    .log-history { margin-top: 34px; }
+    .table-scroll { position: relative; width: 100%; overflow-x: auto; border-top: 1px solid var(--line); }
+    .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .data-table th { padding: 12px 10px; color: var(--muted); font: 9px var(--mono); font-weight: 400; text-transform: uppercase; white-space: nowrap; }
+    .data-table td { padding: 12px 10px; border-top: 1px solid var(--line); color: #E3D6C2; font-size: 11px; white-space: nowrap; }
+    .data-table tbody tr:hover { background: rgb(255 255 255 / 2%); }
+    .metrics-page-heading { align-items: end; }
+    .week-control { width: min(260px, 45%); }
+    .metric-headline { margin: -8px 0 18px; color: #D2C3AB; font-size: 13px; }
+    .metric-headline strong { color: var(--ink); }
+    .metric-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .metric-card { min-width: 0; min-height: 112px; padding: 15px 17px; border-right: 1px solid var(--line); }
+    .metric-card:nth-child(4n + 1) { padding-left: 0; }
+    .metric-card:nth-child(4n) { border-right: 0; }
+    .metric-card:nth-child(n + 5) { border-top: 1px solid var(--line); }
+    .metric-card-value small { margin-left: 3px; color: var(--muted); font-size: 11px; font-weight: 600; }
+    .metric-card-avg { margin-top: 4px; color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .metric-insights { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 22px; margin-top: 24px; }
+    .metric-panel { min-width: 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 5px; background: var(--white); }
+    .metric-wide-panel { margin-top: 22px; }
+    .metric-footnote { margin: 12px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .focus-list { display: grid; gap: 14px; margin: 4px 0 0; padding: 0; list-style: none; }
+    .focus-item { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 12px; align-items: start; }
+    .focus-badge { padding: 5px 0; border-radius: 2px; font: 9px var(--mono); text-align: center; text-transform: uppercase; }
+    .focus-badge.fix { background: #3A2A1E; color: #C07E50; }
+    .focus-badge.watch { background: #3A2A1E; color: #C07E50; }
+    .focus-badge.good { background: #1F3A3E; color: #8FB3B8; }
+    .focus-title { font-size: 12px; font-weight: 800; }
+    .focus-copy { margin-top: 3px; color: #C4B59E; font-size: 11px; line-height: 1.55; }
+    .sleep-chart, .recovery-chart { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; padding-left: 26px; }
+    .chart-track { position: relative; height: 150px; border-bottom: 1px solid var(--line); }
+    .chart-axis { position: absolute; top: 0; left: 0; height: 150px; width: 22px; color: var(--muted); font: 8px var(--mono); }
+    .chart-axis span { position: absolute; right: 0; transform: translateY(50%); }
+    .chart-goal-line { position: absolute; z-index: 2; left: 26px; right: 0; border-top: 1px dashed var(--orange); pointer-events: none; }
+    .chart-goal-line span { position: absolute; right: 0; top: -14px; color: #D8C0A0; font: 8px var(--mono); }
+    .sleep-bar { position: absolute; bottom: 0; left: 50%; width: min(28px, 70%); transform: translateX(-50%); border-radius: 2px 2px 0 0; }
+    .sleep-bar.in-bed { background: #725B4B; }
+    .sleep-bar.asleep { width: min(18px, 46%); background: linear-gradient(180deg, #E6D3B8, var(--parchment)); }
+    .chart-day { min-width: 0; text-align: center; }
+    .chart-day-label { margin-top: 6px; color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .chart-day-note { margin-top: 3px; color: #E3D6C2; font: 9px var(--mono); }
+    .chart-day-note.late { color: #C07E50; }
+    .chart-day-empty { position: absolute; inset: auto 0 6px; color: #4F6467; font: 9px var(--mono); }
+    .recovery-range { position: absolute; left: 50%; width: min(22px, 55%); transform: translateX(-50%); border-radius: 3px; background: linear-gradient(180deg, #C07E50, #9A6340); }
+    .recovery-dot { position: absolute; z-index: 1; left: 50%; width: 10px; height: 10px; transform: translate(-50%, 50%); border: 2px solid var(--white); border-radius: 50%; background: var(--amber); }
+    .legend-swatch { width: 8px; height: 8px; border-radius: 2px; }
+    .legend-swatch.in-bed { background: #725B4B; }
+    .legend-swatch.late { background: #C07E50; }
+    .legend-swatch.stress { border-radius: 50%; background: var(--amber); }
+    .trend-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+    .trend-card { min-width: 0; }
+    .trend-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .trend-label { color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .trend-value { font-size: 15px; font-weight: 800; }
+    .trend-card svg { display: block; width: 100%; height: auto; margin-top: 8px; overflow: visible; }
+    .trend-range { display: flex; justify-content: space-between; margin-top: 4px; color: var(--muted); font: 8px var(--mono); }
+    .workout-log { margin: 0 0 40px; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
+    .workout-log-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); gap: 28px; align-items: start; margin-top: 20px; }
+    .workout-calendar-head, .workout-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .workout-calendar-head { margin-bottom: 6px; color: var(--muted); font: 9px var(--mono); text-align: center; text-transform: uppercase; }
+    .calendar-day { min-height: 38px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 3px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--muted); font: 10px var(--mono); }
+    .calendar-day:hover { border-color: #D8C0A0; color: var(--ink); }
+    .calendar-day.activity { background: #2E2A24; border-color: #725B4B; color: #D8C0A0; }
+    .calendar-day.workout { background: var(--amber); border-color: var(--parchment); color: var(--night); font-weight: 700; }
+    .calendar-day.today { box-shadow: inset 0 0 0 1px var(--orange); }
+    .calendar-day.future { opacity: .35; }
+    .calendar-day.selected { outline: 2px solid var(--orange); outline-offset: 1px; }
+    .calendar-day small { font-size: 8px; opacity: .8; }
+    .legend-swatch.workout { background: #C07E50; }
+    .legend-swatch.activity { background: #2E2A24; border: 1px solid #725B4B; }
+    .legend-swatch.today { border: 1px solid var(--orange); }
+    .workout-entry-form { display: grid; gap: 12px; }
+    .workout-entry-form h2 { margin-top: -4px; font-size: 20px; }
+    .workout-entry-form .access-input { color-scheme: light; }
+    .workout-list-heading { margin-top: 26px; }
+    .workout-side { display: grid; gap: 15px; }
+    .workout-side .aside-card + .aside-card { margin-top: 0; }
+    .vacation-list { display: grid; gap: 6px; margin: 2px 0 0; padding: 0; list-style: none; }
+    .vacation-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 3px; font-size: 11px; }
+    .vacation-list small { display: block; margin-top: 2px; color: var(--muted); font: 9px var(--mono); }
+    .calendar-day.rest { border-style: dashed; color: #C4B59E; }
+    .calendar-day.vacation { background: repeating-linear-gradient(135deg, #1A3A40 0 5px, #153338 5px 10px); border-color: #436167; color: #A9C6CA; }
+    .legend-swatch.rest { border: 1px dashed #A8977E; }
+    .legend-swatch.vacation { background: #436167; }
+    .steps-legend { flex-wrap: wrap; }
+    .inactivity-warning { display: flex; align-items: center; gap: 12px; margin: -10px 0 22px; padding: 13px 16px; border: 1px solid #8A5A3A; border-radius: 5px; background: linear-gradient(115deg, #33261C, #1E2A2A); color: #E3C9AE; font-size: 12px; line-height: 1.5; }
+    .inactivity-warning strong { color: #fff; }
+    .inactivity-warning a { color: #D8C0A0; font-weight: 700; }
+    .inactivity-warning.vacation { border-color: #436167; background: linear-gradient(115deg, #1A3A40, #123039); color: #C3D8DA; }
+    .today-plan { display: flex; flex-wrap: wrap; align-items: end; gap: 6px 16px; max-width: 620px; margin: 0 0 6px; }
+    .today-plan .control-field { width: min(300px, 100%); }
+    .today-plan-note { margin: 0 0 12px; color: var(--muted); font-size: 11px; }
+    .strength-progress { margin-top: 34px; }
+    .strength-picker { max-width: 320px; margin-bottom: 16px; }
+    .strength-chart { margin-top: 18px; }
+    .strength-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .data-table td.steps-cell { padding-top: 6px; padding-bottom: 6px; }
+    .table-input { width: 84px; height: 28px; padding: 0 7px; border: 1px solid var(--umber); border-radius: 3px; background: var(--parchment); color: var(--night); font: 11px var(--sans); color-scheme: light; }
+    .table-input:hover:not(:disabled) { border-color: var(--amber); }
+    .table-input:focus { outline: 2px solid var(--amber); outline-offset: 0; border-color: var(--amber); }
+    .table-input.typed { color: #7A4A26; font-weight: 800; border-color: var(--amber); }
+    .table-input:disabled { opacity: .45; }
+    .intensity-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 12px; }
+    .intensity-days { display: grid; flex: 1 1 520px; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+    .intensity-days .access-input { height: 40px; padding: 0 8px; font-family: var(--mono); text-align: center; }
+    .metric-card-label { color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
+    .metric-card-value { margin-top: 10px; font-size: 24px; font-weight: 800; white-space: nowrap; }
+    .metric-card-change { display: inline-flex; align-items: center; gap: 4px; margin-top: 7px; font: 10px var(--mono); }
+    .metric-card-change.positive, .metric-change.positive { color: #8FB3B8; }
+    .metric-card-change.negative, .metric-change.negative { color: #C07E50; }
+    .metric-card-change.neutral, .metric-change.neutral { color: var(--muted); }
+    .metric-steps-panel { margin-top: 25px; }
+    .metric-table-section { margin-top: 28px; }
+    .metric-change { font: 10px var(--mono); }
+    .metric-no-data { color: var(--muted); font-style: italic; }
+    .empty-state { padding: 26px 10px; color: var(--muted); font-size: 12px; text-align: center; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 5; padding: 12px 16px; border-radius: 3px; background: var(--ink); color: var(--night); font-size: 12px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .access-screen { min-height: 100svh; display: grid; place-items: center; padding: 32px; }
+    .access-shell { width: min(1120px, 100%); min-height: min(690px, calc(100svh - 64px)); display: grid; grid-template-columns: 1fr .9fr; overflow: hidden; border: 1px solid #24454D; border-radius: 6px; background: var(--night); box-shadow: 0 30px 100px rgb(0 0 0 / 38%); }
+    .access-story { min-height: 620px; display: flex; flex-direction: column; justify-content: space-between; padding: 34px 38px; background: linear-gradient(180deg, rgb(13 38 45 / 25%) 0%, rgb(13 38 45 / 18%) 34%, rgb(13 38 45 / 92%) 100%), linear-gradient(115deg, rgb(67 97 103 / 46%), transparent 55%, rgb(192 126 80 / 30%)), url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=85") center / cover; }
+    .access-brand { display: inline-flex; align-items: center; gap: 10px; color: white; font-size: 17px; font-weight: 800; text-decoration: none; }
+    .access-story-copy { max-width: 410px; }
+    .access-story-copy .eyebrow { color: #D8C0A0; }
+    .access-story-copy h1 { margin-top: 13px; font-size: clamp(36px, 4vw, 54px); line-height: 1.03; }
+    .access-story-copy p { max-width: 350px; margin: 16px 0 0; color: #D8C9B2; font-size: 14px; line-height: 1.7; }
+    .access-story-foot { display: flex; justify-content: space-between; color: #CBBBA3; font: 10px var(--mono); text-transform: uppercase; }
+    .access-panel { display: flex; flex-direction: column; justify-content: center; padding: 58px clamp(28px, 5vw, 64px); }
+    .access-kicker { display: flex; align-items: center; gap: 9px; color: #BCAD95; font: 10px var(--mono); text-transform: uppercase; }
+    .access-dot { width: 7px; height: 7px; border-radius: 50%; background: #D8C0A0; box-shadow: 0 0 14px rgb(192 126 80 / 60%); }
+    .access-title { margin: 24px 0 0; font-size: 32px; line-height: 1.12; }
+    .access-description { margin: 10px 0 27px; color: var(--muted); font-size: 13px; line-height: 1.65; }
+    .access-form { display: grid; gap: 9px; }
+    .access-form label { margin-top: 7px; color: #E0D2BC; font-size: 11px; font-weight: 700; }
+    .access-input { width: 100%; height: 45px; padding: 0 13px; border: 1px solid var(--umber); border-radius: 3px; outline: none; background: var(--parchment); color: var(--night); font: 12px var(--sans); font-weight: 600; color-scheme: light; }
+    .access-input::placeholder { color: #9C8770; font-weight: 400; }
+    .access-input:disabled { opacity: .45; cursor: not-allowed; }
+    .access-input option { background: var(--parchment); color: var(--night); }
+    .access-input:focus { border-color: var(--amber); box-shadow: 0 0 0 3px rgb(192 126 80 / 35%); }
+    .password-label-row { display: flex; align-items: center; justify-content: space-between; }
+    .password-label-row button { padding: 5px 0 5px 8px; border: 0; background: transparent; color: #D8C0A0; font-size: 10px; font-weight: 700; }
+    .auth-error { min-height: 16px; margin: 1px 0; color: #C07E50; font-size: 11px; }
+    .auth-error.success { color: #8FB3B8; }
+    .access-mode-switch { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; color: var(--muted); font-size: 10px; }
+    .access-mode-switch button { padding: 5px; border: 0; background: transparent; color: #D8C0A0; font-size: 10px; font-weight: 700; }
+    .access-submit { width: 100%; min-height: 45px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border: 0; border-radius: 3px; background: var(--amber); color: var(--night); font-size: 12px; font-weight: 800; transition: background .15s; }
+    .access-submit:hover { background: #CF9064; }
+    .access-demo { margin-top: 23px; padding: 14px; border: 1px solid #2A4A52; border-radius: 4px; background: #12313A; }
+    .access-demo-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .access-demo-title { color: #EADFCC; font-size: 11px; font-weight: 800; }
+    .access-demo-caption { margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .demo-fill { flex: 0 0 auto; min-height: 31px; padding: 0 10px; border: 1px solid #725B4B; border-radius: 3px; background: #2E2A24; color: #D8C0A0; font-size: 10px; font-weight: 700; }
+    .demo-fill:hover { background: #3A3128; }
+    .access-note { margin: 17px 0 0; color: #7E8C89; font-size: 10px; line-height: 1.6; }
+    .subscription-lock { padding: 18px; border: 1px solid #6B4A33; border-radius: 4px; background: linear-gradient(135deg, #2B241D, #102A31); }
+    .subscription-lock .access-title { margin-top: 0; }
+    .subscription-lock p { color: #C4B59E; font-size: 12px; line-height: 1.65; }
+    .subscription-lock .access-submit { margin-top: 18px; background: #C07E50; }
+    .subscription-lock .access-submit:hover { background: #CF9064; }
+    .logout-button { min-height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 3px; background: transparent; color: var(--muted); font-size: 10px; font-weight: 700; }
+    .logout-button:hover { border-color: var(--orange); color: var(--ink); }
+    @media (max-width: 850px) {
+      .shell { padding: 0 24px 45px; }
+      .layout { grid-template-columns: minmax(0, 1fr) 260px; gap: 15px; }
+      .workout-feature { grid-template-columns: 1fr; }
+      .feature-image { display: none; }
+      .exercise { grid-template-columns: 34px minmax(0, 1fr) 200px 20px; }
+      .exercise-muscle { display: none; }
+      .training-workspace { grid-template-columns: 1fr; }
+      .log-panel { position: static; }
+      .metric-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metric-card:nth-child(n) { padding-left: 17px; border-right: 1px solid var(--line); }
+      .metric-card:nth-child(2n + 1) { padding-left: 0; }
+      .metric-card:nth-child(2n) { border-right: 0; }
+      .metric-card:nth-child(n + 3) { border-top: 1px solid var(--line); }
+      .metric-insights { grid-template-columns: 1fr; }
+      .workout-log-layout { grid-template-columns: 1fr; }
+      .trend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 650px) {
+      .shell { padding: 0 17px 35px; }
+      .topbar { height: 64px; }
+      .nav { gap: 14px; }
+      .nav a { font-size: 11px; }
+      .profile-name { display: none; }
+      main { padding-top: 25px; }
+      .welcome { align-items: start; }
+      .date { margin-top: 8px; font-size: 9px; }
+      .layout { grid-template-columns: 1fr; }
+      .aside { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .aside-card { padding: 16px; }
+      .aside-card + .aside-card { margin-top: 0; }
+      .streak-card { min-height: 150px; }
+      .stat-grid { gap: 14px 7px; }
+      .week-strip { gap: 5px; }
+      .day { min-height: 65px; padding: 9px 3px 6px; }
+      .day-num { margin-top: 7px; font-size: 15px; }
+      .workout-feature { min-height: 200px; }
+      .feature-copy { padding: 21px; }
+      .history-grid { grid-template-columns: 1fr 1fr; }
+      .history-item { min-height: 76px; padding: 11px 12px; border-bottom: 1px solid var(--line); }
+      .history-item:first-child { padding-left: 12px; }
+      .history-item:nth-child(2) { border-right: 0; }
+      .history-item:nth-child(3), .history-item:nth-child(4) { border-bottom: 0; }
+      .page-heading { align-items: start; flex-direction: column; margin-top: 26px; }
+      .page-heading h1 { font-size: 28px; }
+      .training-controls { grid-template-columns: 1fr; }
+      .week-control { width: 100%; }
+      .metric-card:nth-child(n) { padding: 13px 10px; }
+      .metric-card:nth-child(2n + 1) { padding-left: 0; }
+      .metric-card-value { font-size: 20px; }
+      .metric-panel { padding: 15px 14px; }
+      .sleep-chart, .recovery-chart { gap: 5px; }
+      .trend-grid { grid-template-columns: 1fr; }
+      .intensity-days { flex-basis: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .data-table { min-width: 580px; }
+      .exercise { grid-template-columns: 30px minmax(0, 1fr) 20px; row-gap: 8px; }
+      .exercise-inputs { grid-column: 2 / -1; grid-row: 2; padding-right: 28px; }
+      .exercise .check { grid-column: 3; grid-row: 1; }
+    }
+    @media (max-width: 390px) {
+      .nav { gap: 9px; }
+      .nav a { font-size: 10px; }
+      .brand { font-size: 17px; }
+      .aside { grid-template-columns: 1fr; }
+      .streak-card { min-height: 135px; }
+      .exercise { gap: 8px; }
+      .today-cardio { grid-template-columns: minmax(0, 1fr) 96px; gap: 9px; }
+      .today-cardio .button { grid-column: 1 / -1; width: 100%; }
+    }
+    @media (max-width: 760px) {
+      .access-screen { padding: 16px; }
+      .access-shell { max-width: 540px; grid-template-columns: 1fr; }
+      .access-story { min-height: 250px; padding: 24px; }
+      .access-story-copy h1 { max-width: 380px; font-size: 38px; }
+      .access-story-copy p { margin-top: 10px; font-size: 12px; }
+      .access-story-foot { margin-top: 32px; }
+      .access-panel { padding: 32px 26px; }
+    }
+    @media (max-width: 390px) {
+      .access-screen { padding: 0; }
+      .access-shell { min-height: 100svh; border: 0; border-radius: 0; }
+      .access-story { min-height: 218px; padding: 20px; }
+      .access-story-copy h1 { font-size: 33px; }
+      .access-panel { padding: 26px 20px; }
+      .access-title { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="access-screen" id="access-screen">
+    <section class="access-shell" aria-label="FORM member access">
+      <div class="access-story">
+        <a class="access-brand" href="#" aria-label="FORM"><span class="brand-mark">F</span>FORM</a>
+        <div class="access-story-copy">
+          <div class="eyebrow">Training starts here</div>
+          <h1>Train for the long run.</h1>
+          <p>Your workouts, your pace, your progress. Sign in to continue to your member dashboard.</p>
+        </div>
+        <div class="access-story-foot"><span>Built on consistency</span><span>FORM / 01</span></div>
+      </div>
+      <div class="access-panel">
+        <div class="access-kicker"><span class="access-dot"></span><span id="access-kicker">Member sign in</span></div>
+        <div id="login-view">
+          <h2 class="access-title">Welcome back.</h2>
+          <p class="access-description">Sign in with your member account to check your subscription and open your training space.</p>
+          <form class="access-form" id="login-form">
+            <label id="login-identity-label" for="login-username">Username</label>
+            <input class="access-input" id="login-username" name="username" type="text" autocomplete="username" placeholder="Enter your username" required>
+            <div id="display-name-field" hidden>
+              <label for="signup-name">Name</label>
+              <input class="access-input" id="signup-name" name="name" type="text" autocomplete="name" placeholder="Your name">
+            </div>
+            <div class="password-label-row"><label for="login-password">Password</label><button id="toggle-password" type="button" aria-label="Show password">Show</button></div>
+            <input class="access-input" id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+            <p class="auth-error" id="auth-error" role="alert"></p>
+            <button class="access-submit" type="submit"><span>Sign in</span><span aria-hidden="true">↗</span></button>
+          </form>
+          <div class="access-mode-switch" id="access-mode-switch" hidden><span id="access-mode-copy">New to FORM?</span><button id="access-mode-toggle" type="button">Create account</button></div>
+          <div class="access-demo" id="access-demo">
+            <div class="access-demo-top">
+              <div><div class="access-demo-title">Member account</div><div class="access-demo-caption">Active subscription · local CSV</div></div>
+              <button class="demo-fill" id="fill-demo" type="button">Use demo account</button>
+            </div>
+          </div>
+          <p class="access-note" id="access-note">This local demo verifies membership from CSV files. Passwords are stored as plain text for simplicity; use a secure authentication service for real accounts.</p>
+        </div>
+        <div class="subscription-lock" id="subscription-lock" hidden>
+          <h2 class="access-title">Membership inactive.</h2>
+          <p id="subscription-message">Your account is signed in, but an active subscription is required to access training.</p>
+          <button class="access-submit" id="back-to-login" type="button"><span>Back to sign in</span><span aria-hidden="true">↗</span></button>
+          <p class="access-note" id="subscription-note">Subscription status is a local preview. Real membership checks must be performed by your billing provider and server.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="shell" id="dashboard-app" hidden>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="FORM home"><span class="brand-mark">F</span>FORM</a>
+      <nav class="nav" aria-label="Main navigation">
+        <a class="active" href="#today" data-view-target="today" aria-current="page">Today</a>
+        <a href="#training" data-view-target="training">Training</a>
+        <a href="#metrics" data-view-target="metrics">Metrics</a>
+      </nav>
+      <div class="profile"><span class="avatar" id="profile-avatar" aria-hidden="true">JD</span><span class="profile-name" id="profile-name">Jordan Davis</span><button class="logout-button" id="sign-out-button" type="button">Sign out</button></div>
+    </header>
+    <main id="top">
+      <section class="app-view" id="today-view" aria-labelledby="today-heading">
+        <section class="welcome" aria-label="Welcome">
+          <div><div class="eyebrow">Your training space</div><h1 id="today-heading">Show up. Get stronger.</h1></div>
+          <div class="date" id="today-date"></div>
+        </section>
+        <div class="inactivity-warning" id="inactivity-warning" role="status" hidden></div>
+        <div class="layout today-layout">
+          <section class="primary" id="today-workout" aria-label="Today's training">
+          <div class="workout-feature">
+            <div class="feature-copy">
+              <div class="eyebrow" id="workout-label">TODAY'S SESSION · 45 MIN</div>
+              <h2 id="workout-title">Upper body<br>strength</h2>
+              <p id="workout-subtitle">Build strength, one rep at a time.</p>
+              <div class="feature-actions">
+                <button class="button" id="start-button" type="button"><span aria-hidden="true">▶</span> Start workout</button>
+                <button class="button finish" id="finish-button" type="button" hidden>Finish session</button>
+              </div>
+            </div>
+            <div class="feature-image" role="img" aria-label="Strength training equipment in a gym"></div>
+          </div>
+          <section class="today-plan" aria-label="Today's plan">
+            <label class="control-field" for="today-plan-select"><span>Today's training</span><select class="access-input" id="today-plan-select"></select></label>
+            <p class="today-plan-note" id="today-plan-note"></p>
+          </section>
+          <section class="today-cardio" aria-label="Optional cardio for today">
+            <div class="today-cardio-title">Optional cardio</div>
+            <label class="control-field" for="today-cardio-select"><span>Today's cardio</span><select class="access-input" id="today-cardio-select"><option value="">None</option></select></label>
+            <label class="control-field" id="today-cardio-duration-field" for="today-cardio-duration"><span>Minutes</span><input class="access-input" id="today-cardio-duration" type="number" min="1" max="1440" value="20" disabled></label>
+            <button class="button" id="add-today-cardio" type="button" disabled>Add cardio</button>
+          </section>
+          <div id="today-exercises">
+            <div class="section-heading"><h2 id="exercise-heading">Your exercises</h2><span class="section-note" id="exercise-count">0 / 5 complete</span></div>
+            <div class="exercise-list" id="exercise-list"></div>
+          </div>
+          </section>
+        </div>
+      </section>
+      <section class="app-view" id="training-view" aria-labelledby="training-heading" hidden>
+        <section class="page-heading">
+          <div><div class="eyebrow">Build your session</div><h1 id="training-heading">Training library</h1></div>
+          <span class="section-note" id="catalog-count"></span>
+        </section>
+        <section class="workout-log" aria-labelledby="workout-log-heading">
+          <div class="section-heading"><h2 id="workout-log-heading">Workout log</h2><span class="section-note">Last 12 weeks</span></div>
+          <div class="history-grid" id="workout-stats"></div>
+          <div class="workout-log-layout">
+            <div class="workout-calendar-panel">
+              <div class="workout-calendar-head" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+              <div class="workout-calendar" id="workout-calendar"></div>
+              <div class="steps-legend" aria-hidden="true"><span><i class="legend-swatch workout"></i>Workout</span><span><i class="legend-swatch activity"></i>Exercises logged</span><span><i class="legend-swatch rest"></i>No training</span><span><i class="legend-swatch vacation"></i>Vacation</span><span><i class="legend-swatch today"></i>Today</span></div>
+              <p class="metric-footnote">Select a day to add a workout for it. Workout time counts as intensity minutes on days without watch data.</p>
+            </div>
+            <div class="workout-side">
+              <form class="aside-card workout-entry-form" id="workout-entry-form">
+                <div class="eyebrow">Manual entry</div><h2>Add a workout</h2>
+                <label class="control-field" for="workout-entry-date"><span>Date</span><input class="access-input" id="workout-entry-date" type="date" required></label>
+                <label class="control-field" for="workout-entry-plan"><span>Workout</span><select class="access-input" id="workout-entry-plan" required></select></label>
+                <label class="control-field" for="workout-entry-minutes"><span>Minutes</span><input class="access-input" id="workout-entry-minutes" type="number" min="1" max="600" value="45" required></label>
+                <button class="button" type="submit" id="workout-entry-save">Save workout</button>
+              </form>
+              <form class="aside-card workout-entry-form" id="vacation-form">
+                <div class="eyebrow">Time off</div><h2>Vacation</h2>
+                <p class="metric-footnote">Vacation days don't count toward the 3-day no-workout warning.</p>
+                <div class="log-fields">
+                  <label class="control-field" for="vacation-start"><span>From</span><input class="access-input" id="vacation-start" type="date" required></label>
+                  <label class="control-field" for="vacation-end"><span>To</span><input class="access-input" id="vacation-end" type="date" required></label>
+                </div>
+                <label class="control-field" for="vacation-label"><span>Note <span class="field-optional">Optional</span></span><input class="access-input" id="vacation-label" type="text" maxlength="60" placeholder="e.g. Trip home"></label>
+                <button class="button" type="submit" id="vacation-save">Add vacation</button>
+                <ul class="vacation-list" id="vacation-list"></ul>
+              </form>
+            </div>
+          </div>
+          <div class="section-heading workout-list-heading"><h2>Recent workouts</h2><span class="section-note" id="workout-count"></span></div>
+          <div class="table-scroll"><table class="data-table"><thead><tr><th>Date</th><th>Workout</th><th>Minutes</th><th>Exercises done</th><th>Source</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="workout-rows"></tbody></table></div>
+        </section>
+        <div class="training-controls">
+          <label class="control-field"><span>Exercise group</span><select class="access-input" id="exercise-category"><option value="all">All exercises</option></select></label>
+          <label class="control-field"><span>Search</span><input class="access-input" id="exercise-search" type="search" placeholder="Find an exercise"></label>
+        </div>
+        <div class="training-workspace">
+          <section class="catalog-panel" aria-label="Exercise catalog">
+            <div class="section-heading"><h2>All exercises</h2><span class="section-note" id="catalog-visible-count"></span></div>
+            <div class="catalog-list" id="catalog-list"></div>
+          </section>
+          <section class="aside-card log-panel" aria-labelledby="log-heading">
+            <div class="eyebrow">Session log</div><h2 id="log-heading">Log an exercise</h2>
+            <form id="exercise-log-form" class="exercise-log-form">
+              <label for="selected-exercise">Exercise</label>
+              <select class="access-input" id="selected-exercise" required></select>
+              <div id="strength-fields" class="log-fields">
+                <label for="log-sets">Sets</label><input class="access-input" id="log-sets" type="number" min="1" max="30" value="3">
+                <label for="log-reps">Reps per set</label><input class="access-input" id="log-reps" type="number" min="1" max="100" value="10">
+                <label for="log-weight">Weight (kg) <span class="field-optional">Optional</span></label><input class="access-input" id="log-weight" type="number" min="0" max="2000" step="0.5" placeholder="0">
+              </div>
+              <div id="time-fields" class="log-fields" hidden>
+                <label for="log-duration">Duration (minutes)</label><input class="access-input" id="log-duration" type="number" min="1" max="1440" value="30">
+              </div>
+              <button class="button" type="submit">Save exercise</button>
+              <p class="auth-error" id="log-error" role="status"></p>
+            </form>
+          </section>
+        </div>
+        <section class="strength-progress" aria-labelledby="strength-heading">
+          <div class="section-heading"><h2 id="strength-heading">Strength progress</h2><span class="section-note" id="strength-note"></span></div>
+          <p class="empty-state" id="strength-empty">No weights logged yet. Add a weight next to an exercise on Today, or log one here, and your progress will chart below.</p>
+          <div id="strength-content" hidden>
+            <label class="control-field strength-picker"><span>Exercise</span><select class="access-input" id="strength-exercise"></select></label>
+            <div class="history-grid" id="strength-stats"></div>
+            <div class="strength-chart" id="strength-chart"></div>
+            <p class="metric-footnote">Heaviest weight logged each day, from Today check-offs and Training logs.</p>
+          </div>
+        </section>
+        <section class="log-history" aria-labelledby="exercise-history-heading">
+          <div class="section-heading"><h2 id="exercise-history-heading">Exercise history</h2><span class="section-note" id="exercise-log-count"></span></div>
+          <div class="table-scroll"><table class="data-table"><thead><tr><th>Date</th><th>Exercise</th><th>Details</th><th>Weight</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody id="exercise-log-rows"></tbody></table></div>
+        </section>
+      </section>
+      <section class="app-view" id="metrics-view" aria-labelledby="metrics-heading" hidden>
+        <section class="page-heading metrics-page-heading">
+          <div><div class="eyebrow">Your health & activity</div><h1 id="metrics-heading">Weekly metrics</h1></div>
+          <label class="control-field week-control"><span>Selected week</span><select class="access-input" id="metric-week-select"></select></label>
+        </section>
+        <p class="metric-headline" id="metric-headline"></p>
+        <div class="metric-cards" id="metric-cards"></div>
+        <div class="metric-insights">
+          <section class="metric-panel" aria-labelledby="focus-heading">
+            <div class="section-heading"><h2 id="focus-heading">This week's focus</h2><span class="section-note">vs. your previous 4 weeks</span></div>
+            <ul class="focus-list" id="metric-focus-list"></ul>
+            <p class="metric-footnote">Wellness tips from watch data, not medical advice. If something stays off your normal for two weeks or more, check in with your doctor.</p>
+          </section>
+          <section class="metric-panel" aria-labelledby="sleep-chart-heading">
+            <div class="section-heading"><h2 id="sleep-chart-heading">Sleep vs. time in bed</h2><span class="section-note">Bedtime under each day</span></div>
+            <div class="sleep-chart" id="sleep-chart" role="img"></div>
+            <div class="steps-legend" aria-hidden="true"><span><i class="legend-swatch in-bed"></i>In bed</span><span><i class="steps-legend-bar"></i>Asleep</span><span><i class="steps-legend-goal"></i>7 h goal</span><span><i class="legend-swatch late"></i>After midnight</span></div>
+          </section>
+        </div>
+        <section class="metric-panel metric-wide-panel" aria-labelledby="trends-heading">
+          <div class="section-heading"><h2 id="trends-heading">12-week trends</h2><span class="section-note">Weekly averages · intensity is a weekly total</span></div>
+          <div class="trend-grid" id="trend-grid"></div>
+        </section>
+        <section class="metric-panel metric-wide-panel" aria-labelledby="recovery-heading">
+          <div class="section-heading"><h2 id="recovery-heading">Recovery and stress</h2><span class="section-note">0–100 scale</span></div>
+          <div class="recovery-chart" id="recovery-chart" role="img"></div>
+          <div class="steps-legend" aria-hidden="true"><span><i class="steps-legend-bar"></i>Body Battery low–high</span><span><i class="legend-swatch stress"></i>Average stress</span></div>
+        </section>
+        <section class="steps-panel metric-steps-panel" aria-labelledby="steps-heading">
+          <div class="steps-panel-head">
+            <div><div class="eyebrow">Daily movement</div><h2 id="steps-heading">Steps vs. daily goal</h2></div>
+            <div class="steps-total"><strong id="steps-total">0</strong><span>steps this week</span></div>
+          </div>
+          <div class="steps-summary">
+            <div class="steps-summary-item"><div class="steps-summary-value" id="steps-average">0</div><div class="steps-summary-label">Daily average</div></div>
+            <div class="steps-summary-item"><div class="steps-summary-value" id="steps-goal-days">0 / 0</div><div class="steps-summary-label">Days at goal</div></div>
+            <div class="steps-summary-item"><div class="steps-summary-value" id="steps-goal-rate">0%</div><div class="steps-summary-label">Goal attainment</div></div>
+          </div>
+          <div class="steps-chart" id="steps-chart" role="img" aria-label="Weekly steps compared with daily goals"></div>
+          <div class="steps-legend" aria-hidden="true"><span><i class="steps-legend-bar"></i>Steps</span><span><i class="steps-legend-goal"></i>Daily goal</span></div>
+        </section>
+        <section class="metric-table-section">
+          <div class="section-heading"><h2>Day by day</h2><span class="section-note" id="daily-metric-range"></span></div>
+          <div class="table-scroll"><table class="data-table daily-metric-table"><thead><tr><th>Day</th><th>Sleep</th><th>In bed</th><th>Score</th><th>Bedtime</th><th>HRV</th><th>Rest HR</th><th>Steps</th><th>Int. min</th><th>Stress</th><th>BB peak</th><th>Readiness</th></tr></thead><tbody id="daily-metric-rows"></tbody></table></div>
+          <p class="metric-footnote">Sleep counts toward the morning you woke up. Type in the Steps column to update a day; typed steps are highlighted and replace watch data. Clear one to go back.</p>
+        </section>
+        <section class="metric-table-section" aria-labelledby="intensity-log-heading">
+          <div class="section-heading"><h2 id="intensity-log-heading">Log intensity minutes</h2><span class="section-note">Overrides watch data</span></div>
+          <p class="metric-footnote">Type each day's intensity minutes for the selected week. Leave a day blank to use the watch, or your workout time when there's no watch data.</p>
+          <form class="intensity-form" id="intensity-form">
+            <div class="intensity-days" id="intensity-days"></div>
+            <button class="button" type="submit" id="intensity-save">Save minutes</button>
+          </form>
+        </section>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./cloud-config.js"></script>
+  <script>
+    const authStorageKey = "form-local-api-token";
+    const cloudSessionKey = "form-cloud-session";
+    const cloudConfig = window.FORM_SUPABASE_CONFIG || {};
+    const cloudMode = /^https:\/\//.test(cloudConfig.url || "") && Boolean(cloudConfig.anonKey);
+    const cloudBaseUrl = (cloudConfig.url || "").replace(/\/+$/, "");
+    const authToken = () => sessionStorage.getItem(authStorageKey);
+    const accessScreen = document.getElementById("access-screen");
+    const dashboardApp = document.getElementById("dashboard-app");
+    const loginView = document.getElementById("login-view");
+    const subscriptionLock = document.getElementById("subscription-lock");
+    const loginForm = document.getElementById("login-form");
+    const authError = document.getElementById("auth-error");
+    const usernameInput = document.getElementById("login-username");
+    const passwordInput = document.getElementById("login-password");
+    const accessKicker = document.getElementById("access-kicker");
+    let authMode = "signin";
+
+    function readCloudSession() {
+      try { return JSON.parse(sessionStorage.getItem(cloudSessionKey) || "null"); } catch { return null; }
+    }
+    function cloudError(message, code, status, member) {
+      const error = new Error(message);
+      error.code = code;
+      error.status = status;
+      error.member = member;
+      return error;
+    }
+    async function cloudFetch(path, options = {}) {
+      const authRequired = options.auth !== false;
+      let session = readCloudSession();
+      if (authRequired && !session?.access_token) throw cloudError("Please sign in again.", "authentication_required", 401);
+      if (authRequired && session.expires_at && session.expires_at * 1000 < Date.now() + 30000) {
+        if (!session.refresh_token) throw cloudError("Your sign-in expired. Please sign in again.", "authentication_required", 401);
+        const refreshResponse = await fetch(`${cloudBaseUrl}/auth/v1/token?grant_type=refresh_token`, {
+          method: "POST",
+          headers: { apikey: cloudConfig.anonKey, "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh_token: session.refresh_token })
+        });
+        const refreshed = await refreshResponse.json();
+        if (!refreshResponse.ok) {
+          sessionStorage.removeItem(cloudSessionKey);
+          throw cloudError("Your sign-in expired. Please sign in again.", "authentication_required", refreshResponse.status);
+        }
+        session = refreshed;
+        sessionStorage.setItem(cloudSessionKey, JSON.stringify(session));
+      }
+      const headers = {
+        apikey: cloudConfig.anonKey,
+        Authorization: `Bearer ${authRequired ? session.access_token : cloudConfig.anonKey}`
+      };
+      if (options.body !== undefined) headers["Content-Type"] = "application/json";
+      if (options.prefer) headers.Prefer = options.prefer;
+      let response;
+      try {
+        response = await fetch(`${cloudBaseUrl}${path}`, {
+          method: options.method || "GET",
+          headers,
+          body: options.body === undefined ? undefined : JSON.stringify(options.body),
+          cache: "no-store"
+        });
+      } catch {
+        throw new Error("The cloud service could not be reached. Check the deployment configuration.");
+      }
+      const text = await response.text();
+      const result = text ? JSON.parse(text) : null;
+      if (!response.ok) {
+        const code = result?.code || (response.status === 400 ? "invalid_credentials" : "cloud_request_failed");
+        const message = code === "invalid_credentials" ? "Email or password is incorrect." : result?.msg || result?.message || result?.error_description || "The cloud service could not complete this request.";
+        throw cloudError(message, code, response.status);
+      }
+      return result;
+    }
+    async function getCloudMember(user) {
+      const profiles = await cloudFetch(`/rest/v1/profiles?select=id,email,display_name,initials,subscription_active&id=eq.${encodeURIComponent(user.id)}`);
+      const profile = profiles?.[0];
+      if (!profile) throw new Error("Your member profile is not ready. Try signing in again.");
+      return { id: profile.id, username: profile.email, name: profile.display_name, initials: profile.initials, subscriptionActive: profile.subscription_active };
+    }
+    async function cloudApiRequest(path, options = {}) {
+      const body = options.body || {};
+      if (path === "/api/login") {
+        const session = await cloudFetch("/auth/v1/token?grant_type=password", {
+          method: "POST", auth: false,
+          body: { email: body.username, password: body.password }
+        });
+        sessionStorage.setItem(cloudSessionKey, JSON.stringify(session));
+        const member = await getCloudMember(session.user);
+        if (!member.subscriptionActive) throw cloudError("This account does not have an active subscription.", "subscription_inactive", 403, member);
+        return { token: session.access_token, member };
+      }
+      if (path === "/api/signup") {
+        const result = await cloudFetch("/auth/v1/signup", {
+          method: "POST", auth: false,
+          body: { email: body.username, password: body.password, data: { display_name: body.name || body.username.split("@")[0] } }
+        });
+        const signupSession = result.session || (result.access_token ? result : null);
+        if (!signupSession) return { requiresConfirmation: true };
+        sessionStorage.setItem(cloudSessionKey, JSON.stringify(signupSession));
+        const member = await getCloudMember(result.user || signupSession.user || result);
+        if (!member.subscriptionActive) throw cloudError("Your account was created, but an active subscription is required for training.", "subscription_inactive", 403, member);
+        return { token: signupSession.access_token, member };
+      }
+      if (path === "/api/logout") {
+        try { await cloudFetch("/auth/v1/logout", { method: "POST" }); } finally { sessionStorage.removeItem(cloudSessionKey); }
+        return { status: "signed_out" };
+      }
+      if (path === "/api/me") {
+        const user = await cloudFetch("/auth/v1/user");
+        return { member: await getCloudMember(user) };
+      }
+      if (path === "/api/dashboard") {
+        const [planRows, exerciseRows, completionRows, sessionRows, stepRows, catalogRows, logRows, healthRows, sleepRows, readinessRows, loadRows, enduranceRows, restRows, vacationRows] = await Promise.all([
+          cloudFetch("/rest/v1/workout_plans?select=plan_id,day_index,title,subtitle,duration_minutes&order=day_index.asc"),
+          cloudFetch("/rest/v1/exercises?select=plan_id,exercise_order,exercise_name,details,muscle&order=plan_id.asc,exercise_order.asc"),
+          cloudFetch("/rest/v1/exercise_completions?select=activity_date,plan_id,exercise_order,completed,weight_kg,sets,reps&order=activity_date.asc"),
+          cloudFetch("/rest/v1/sessions?select=id,activity_date,plan_id,duration_minutes,exercises_completed,completed_at&order=activity_date.asc"),
+          cloudFetch("/rest/v1/step_records?select=activity_date,actual_steps,goal_steps&order=activity_date.asc"),
+          cloudFetch("/rest/v1/exercise_catalog?select=exercise_id,name,category,entry_type,details&order=name.asc"),
+          cloudFetch("/rest/v1/exercise_logs?select=id,exercise_id,exercise_name,category,entry_type,activity_date,duration_minutes,sets,reps,weight_kg,created_at&order=activity_date.desc"),
+          cloudFetch("/rest/v1/daily_health_metrics?select=activity_date,heart_rate,hrv,spo2,respiration,skin_temperature,stress,body_battery_peak&order=activity_date.asc"),
+          cloudFetch("/rest/v1/sleep_metrics?select=activity_date,duration_minutes,score,respiration&order=activity_date.asc"),
+          cloudFetch("/rest/v1/readiness_metrics?select=activity_date,score&order=activity_date.asc"),
+          cloudFetch("/rest/v1/training_load_metrics?select=activity_date,acute,chronic,ratio&order=activity_date.asc"),
+          cloudFetch("/rest/v1/endurance_metrics?select=activity_date,score&order=activity_date.asc"),
+          cloudFetch("/rest/v1/rest_days?select=activity_date,plan_id&order=activity_date.asc"),
+          cloudFetch("/rest/v1/vacations?select=id,start_date,end_date,label&order=start_date.asc")
+        ]);
+        return {
+          restDays: restRows.map(row => ({ date: row.activity_date, planId: row.plan_id })),
+          vacations: vacationRows.map(row => ({ id: row.id, startDate: row.start_date, endDate: row.end_date, label: row.label })),
+          plans: planRows.map(row => ({ planId: row.plan_id, dayIndex: row.day_index, title: row.title, subtitle: row.subtitle, duration: row.duration_minutes })),
+          exercises: exerciseRows.map(row => ({ planId: row.plan_id, order: row.exercise_order, name: row.exercise_name, details: row.details, muscle: row.muscle })),
+          completions: completionRows.map(row => ({ date: row.activity_date, planId: row.plan_id, exerciseOrder: row.exercise_order, completed: row.completed, weightKg: row.weight_kg, sets: row.sets, reps: row.reps })),
+          sessions: sessionRows.map(row => ({ id: row.id, date: row.activity_date, planId: row.plan_id, durationMinutes: row.duration_minutes, exercisesCompleted: row.exercises_completed, completedAt: row.completed_at })),
+          steps: stepRows.map(row => ({ date: row.activity_date, steps: row.actual_steps, goal: row.goal_steps })),
+          catalog: catalogRows,
+          exerciseLogs: logRows.map(row => ({ id: row.id, exerciseId: row.exercise_id, exerciseName: row.exercise_name, category: row.category, entryType: row.entry_type, date: row.activity_date, durationMinutes: row.duration_minutes, sets: row.sets, reps: row.reps, weightKg: row.weight_kg, createdAt: row.created_at })),
+          garmin: {
+            health: healthRows.map(row => ({ date: row.activity_date, heartRate: row.heart_rate, hrv: row.hrv, spo2: row.spo2, respiration: row.respiration, skinTemperature: row.skin_temperature })),
+            stress: healthRows.map(row => ({ date: row.activity_date, value: row.stress })),
+            bodyBattery: healthRows.map(row => ({ date: row.activity_date, value: row.body_battery_peak })),
+            sleep: sleepRows.map(row => ({ date: row.activity_date, durationMinutes: row.duration_minutes, score: row.score, respiration: row.respiration })),
+            readiness: readinessRows.map(row => ({ date: row.activity_date, score: row.score })),
+            trainingLoad: loadRows.map(row => ({ date: row.activity_date, acute: row.acute, chronic: row.chronic, ratio: row.ratio })),
+            endurance: enduranceRows.map(row => ({ date: row.activity_date, score: row.score }))
+          }
+        };
+      }
+      if (path === "/api/exercise-logs") {
+        const session = readCloudSession();
+        const entry = body.entryType === "time"
+          ? { duration_minutes: body.durationMinutes, sets: null, reps: null, weight_kg: null }
+          : { duration_minutes: null, sets: body.sets, reps: body.reps, weight_kg: body.weightKg ?? null };
+        await cloudFetch("/rest/v1/exercise_logs", {
+          method: "POST", prefer: "return=minimal",
+          body: { user_id: session.user.id, exercise_id: body.exerciseId, exercise_name: body.exerciseName, category: body.category, entry_type: body.entryType, activity_date: body.date, ...entry }
+        });
+        return { status: "logged" };
+      }
+      if (path.startsWith("/api/exercise-logs/") && options.method === "DELETE") {
+        const session = readCloudSession();
+        const id = path.slice("/api/exercise-logs/".length);
+        await cloudFetch(`/rest/v1/exercise_logs?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(session.user.id)}`, {
+          method: "DELETE", prefer: "return=minimal"
+        });
+        return { status: "deleted" };
+      }
+      if (path === "/api/completions") {
+        const session = readCloudSession();
+        const planId = Number(body.planId);
+        const filter = `user_id=eq.${encodeURIComponent(session.user.id)}&activity_date=eq.${encodeURIComponent(body.date)}&plan_id=eq.${planId}&exercise_order=eq.${body.exerciseOrder}`;
+        if (body.completed || [body.weightKg, body.sets, body.reps].some(value => value !== null && value !== undefined)) {
+          await cloudFetch(`/rest/v1/exercise_completions?on_conflict=user_id,activity_date,plan_id,exercise_order`, {
+            method: "POST", prefer: "resolution=merge-duplicates,return=minimal",
+            body: { user_id: session.user.id, activity_date: body.date, plan_id: planId, exercise_order: body.exerciseOrder, completed: Boolean(body.completed), weight_kg: body.weightKg ?? null, sets: body.sets ?? null, reps: body.reps ?? null }
+          });
+        } else {
+          await cloudFetch(`/rest/v1/exercise_completions?${filter}`, { method: "DELETE", prefer: "return=minimal" });
+        }
+        return { status: "saved", completed: Boolean(body.completed) };
+      }
+      if (path === "/api/sessions") {
+        const session = readCloudSession();
+        const planId = Number(body.planId);
+        const completed = await cloudFetch(`/rest/v1/exercise_completions?select=exercise_order&completed=eq.true&plan_id=eq.${planId}&activity_date=eq.${encodeURIComponent(body.date)}`);
+        const created = await cloudFetch("/rest/v1/sessions?select=id,duration_minutes,completed_at", {
+          method: "POST", prefer: "return=representation",
+          body: { user_id: session.user.id, activity_date: body.date, plan_id: planId, duration_minutes: body.durationMinutes, exercises_completed: completed.length }
+        });
+        const row = Array.isArray(created) ? created[0] : created;
+        return { status: "logged", id: row?.id, durationMinutes: row?.duration_minutes, completedAt: row?.completed_at };
+      }
+      if (path === "/api/steps") {
+        const session = readCloudSession();
+        if (body.steps === null || body.steps === undefined) {
+          await cloudFetch(`/rest/v1/step_records?user_id=eq.${encodeURIComponent(session.user.id)}&activity_date=eq.${encodeURIComponent(body.date)}`, { method: "DELETE", prefer: "return=minimal" });
+        } else {
+          await cloudFetch("/rest/v1/step_records?on_conflict=user_id,activity_date", {
+            method: "POST", prefer: "resolution=merge-duplicates,return=minimal",
+            body: { user_id: session.user.id, activity_date: body.date, actual_steps: body.steps, goal_steps: body.goal || 8500 }
+          });
+        }
+        return { status: "saved", date: body.date, steps: body.steps ?? null, goal: body.goal ?? null };
+      }
+      if (path === "/api/rest-days") {
+        const session = readCloudSession();
+        if (body.rest) {
+          await cloudFetch("/rest/v1/rest_days?on_conflict=user_id,activity_date", {
+            method: "POST", prefer: "resolution=merge-duplicates,return=minimal",
+            body: { user_id: session.user.id, activity_date: body.date, plan_id: body.planId ?? null }
+          });
+        } else {
+          await cloudFetch(`/rest/v1/rest_days?user_id=eq.${encodeURIComponent(session.user.id)}&activity_date=eq.${encodeURIComponent(body.date)}`, { method: "DELETE", prefer: "return=minimal" });
+        }
+        return { status: "saved", date: body.date, rest: Boolean(body.rest) };
+      }
+      if (path === "/api/vacations") {
+        const session = readCloudSession();
+        const created = await cloudFetch("/rest/v1/vacations?select=id,start_date,end_date,label", {
+          method: "POST", prefer: "return=representation",
+          body: { user_id: session.user.id, start_date: body.startDate, end_date: body.endDate, label: (body.label || "").slice(0, 60) }
+        });
+        const row = Array.isArray(created) ? created[0] : created;
+        return { status: "saved", vacation: { id: row.id, startDate: row.start_date, endDate: row.end_date, label: row.label } };
+      }
+      if (path.startsWith("/api/vacations/") && options.method === "DELETE") {
+        const session = readCloudSession();
+        const id = path.slice("/api/vacations/".length);
+        await cloudFetch(`/rest/v1/vacations?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(session.user.id)}`, { method: "DELETE", prefer: "return=minimal" });
+        return { status: "deleted" };
+      }
+      if (path.startsWith("/api/sessions/") && options.method === "DELETE") {
+        const session = readCloudSession();
+        const id = path.slice("/api/sessions/".length);
+        await cloudFetch(`/rest/v1/sessions?id=eq.${encodeURIComponent(id)}&user_id=eq.${encodeURIComponent(session.user.id)}`, {
+          method: "DELETE", prefer: "return=minimal"
+        });
+        return { status: "deleted" };
+      }
+      throw new Error("This cloud operation is not configured.");
+    }
+
+    async function apiRequest(path, options = {}) {
+      if (cloudMode) return cloudApiRequest(path, options);
+      const headers = {};
+      if (authToken()) headers.Authorization = `Bearer ${authToken()}`;
+      if (options.body !== undefined) headers["Content-Type"] = "application/json";
+      let response;
+      try {
+        response = await fetch(path, {
+          method: options.method || "GET",
+          headers,
+          body: options.body === undefined ? undefined : JSON.stringify(options.body),
+          cache: "no-store"
+        });
+      } catch {
+        throw new Error("Local server unavailable. Start local-server.ps1, then open http://localhost:4173.");
+      }
+      const result = await response.json();
+      if (!response.ok) {
+        const errors = {
+          invalid_credentials: "Username or password is incorrect.",
+          subscription_inactive: "This account does not have an active subscription.",
+          authentication_required: "Your local session expired. Please sign in again."
+        };
+        const error = new Error(errors[result.error] || "The local server could not complete this request.");
+        error.status = response.status;
+        error.code = result.error;
+        error.member = result.member;
+        throw error;
+      }
+      return result;
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      const registering = mode === "signup";
+      loginView.querySelector(".access-title").textContent = registering ? "Create your account." : "Welcome back.";
+      loginView.querySelector(".access-description").textContent = registering
+        ? "Create a member account. Training access opens when your subscription is active."
+        : "Sign in with your member account to check your subscription and open your training space.";
+      loginForm.querySelector('[type="submit"] span').textContent = registering ? "Create account" : "Sign in";
+      document.getElementById("access-mode-copy").textContent = registering ? "Already a member?" : "New to FORM?";
+      document.getElementById("access-mode-toggle").textContent = registering ? "Sign in" : "Create account";
+      document.getElementById("display-name-field").hidden = !registering;
+      passwordInput.minLength = registering ? 8 : 0;
+      authError.textContent = "";
+      authError.classList.remove("success");
+    }
+    if (cloudMode) {
+      document.getElementById("login-identity-label").textContent = "Email address";
+      usernameInput.type = "email";
+      usernameInput.autocomplete = "email";
+      usernameInput.placeholder = "you@example.com";
+      document.getElementById("fill-demo").hidden = true;
+      document.getElementById("access-demo").hidden = true;
+      document.getElementById("access-mode-switch").hidden = false;
+      document.getElementById("access-note").textContent = "Supabase Auth handles account passwords. Your training data is protected by per-member database policies.";
+      document.getElementById("subscription-note").textContent = "Subscription status is checked by the hosted database and must be granted by an account administrator or billing system.";
+      document.getElementById("access-mode-switch").hidden = false;
+    }
+    document.getElementById("access-mode-toggle").addEventListener("click", () => setAuthMode(authMode === "signin" ? "signup" : "signin"));
+
+    function showDashboard(member) {
+      accessScreen.hidden = true;
+      dashboardApp.hidden = false;
+      document.getElementById("profile-name").textContent = member.name;
+      document.getElementById("profile-avatar").textContent = member.initials;
+    }
+    function showSubscriptionLock(member) {
+      accessScreen.hidden = false;
+      dashboardApp.hidden = true;
+      loginView.hidden = true;
+      subscriptionLock.hidden = false;
+      accessKicker.textContent = "Subscription required";
+      document.getElementById("subscription-message").textContent = `${member.name}, your account is signed in, but it does not have an active subscription. An active membership is required to access training.`;
+    }
+    function returnToLogin() {
+      dashboardApp.hidden = true;
+      accessScreen.hidden = false;
+      loginView.hidden = false;
+      subscriptionLock.hidden = true;
+      accessKicker.textContent = "Member sign in";
+      authError.textContent = "";
+      loginForm.reset();
+    }
+    loginForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      authError.textContent = "";
+      authError.classList.remove("success");
+      const submitButton = loginForm.querySelector('[type="submit"]');
+      submitButton.disabled = true;
+      try {
+        const result = await apiRequest(cloudMode && authMode === "signup" ? "/api/signup" : "/api/login", {
+          method: "POST",
+          body: { username: usernameInput.value.trim(), password: passwordInput.value, name: document.getElementById("signup-name").value.trim() }
+        });
+        if (result.requiresConfirmation) {
+          setAuthMode("signin");
+          authError.classList.add("success");
+          authError.textContent = "Account created. Check your email to confirm, then sign in.";
+          return;
+        }
+        if (!cloudMode) sessionStorage.setItem(authStorageKey, result.token);
+        await loadMemberDashboard(result.member);
+      } catch (error) {
+        if (error.code === "subscription_inactive") showSubscriptionLock(error.member || { name: usernameInput.value.trim() });
+        else authError.textContent = error.message;
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+    document.getElementById("fill-demo").addEventListener("click", () => {
+      usernameInput.value = "corey";
+      passwordInput.value = "corey";
+      usernameInput.focus();
+    });
+    document.getElementById("toggle-password").addEventListener("click", event => {
+      const button = event.currentTarget;
+      const reveal = passwordInput.type === "password";
+      passwordInput.type = reveal ? "text" : "password";
+      button.textContent = reveal ? "Hide" : "Show";
+      button.setAttribute("aria-label", `${reveal ? "Hide" : "Show"} password`);
+    });
+    document.getElementById("back-to-login").addEventListener("click", async () => {
+      if (cloudMode) {
+        try { await apiRequest("/api/logout", { method: "POST" }); } catch {}
+      }
+      returnToLogin();
+    });
+    document.getElementById("sign-out-button").addEventListener("click", async () => {
+      try { await apiRequest("/api/logout", { method: "POST" }); } catch {}
+      sessionStorage.removeItem(authStorageKey);
+      returnToLogin();
+    });
+
+    let plans = [];
+    let stepRecords = [];
+    let exerciseCatalog = [];
+    let garminMetrics = { activities: [], daily: [], health: [], stress: [], bodyBattery: [], sleep: [], readiness: [], trainingLoad: [], endurance: [] };
+    let exerciseLogs = [];
+    let intensityLogs = [];
+    let restDays = new Set();
+    let restPlans = new Map();
+    let stepEntries = [];
+    let vacations = [];
+    const today = new Date();
+    const todayIndex = (today.getDay() + 6) % 7;
+    const monday = new Date(today);
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(today.getDate() - todayIndex);
+    function dateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+    function dateForDay(index) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + index);
+      return date;
+    }
+    const cyclePlanIds = [5, 6, 1];
+    function getTodayCyclePlanId(sessions) {
+      const storageKey = `form-cycle-plan-${dateKey(today)}`;
+      try {
+        const savedPlanId = Number(localStorage.getItem(storageKey));
+        if (cyclePlanIds.includes(savedPlanId)) return savedPlanId;
+      } catch {}
+      const latestCycleSession = [...sessions]
+        .filter(session => cyclePlanIds.includes(Number(session.planId)))
+        .sort((left, right) => right.date.localeCompare(left.date) || String(right.completedAt || "").localeCompare(String(left.completedAt || "")))[0];
+      const lastIndex = latestCycleSession ? cyclePlanIds.indexOf(Number(latestCycleSession.planId)) : -1;
+      // A workout skipped with "No training" carries forward until a rotation session is finished.
+      const carried = [...restPlans.entries()]
+        .filter(([date, planId]) => date < dateKey(today) && date > (latestCycleSession?.date || "") && cyclePlanIds.includes(Number(planId)))
+        .sort((left, right) => right[0].localeCompare(left[0]))[0];
+      const nextPlanId = carried ? Number(carried[1]) : cyclePlanIds[(lastIndex + 1) % cyclePlanIds.length];
+      try { localStorage.setItem(storageKey, String(nextPlanId)); } catch {}
+      return nextPlanId;
+    }
+    function parseDateKey(value) {
+      return new Date(`${value}T12:00:00`);
+    }
+    function weekStartForDate(value) {
+      const date = parseDateKey(value);
+      date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+    function shiftDate(date, days) {
+      const shifted = new Date(date);
+      shifted.setDate(shifted.getDate() + days);
+      return shifted;
+    }
+    function getRequestedView() {
+      const requested = window.location.hash.slice(1);
+      if (requested === "training") return "training";
+      if (requested === "metrics" || requested === "progress") return "metrics";
+      return "today";
+    }
+    function setActiveView(view, updateHash = true) {
+      const selectedView = ["today", "training", "metrics"].includes(view) ? view : "today";
+      document.querySelectorAll("[data-view-target]").forEach(link => {
+        const isSelected = link.dataset.viewTarget === selectedView;
+        link.classList.toggle("active", isSelected);
+        if (isSelected) link.setAttribute("aria-current", "page");
+        else link.removeAttribute("aria-current");
+      });
+      document.querySelectorAll(".app-view").forEach(panel => {
+        panel.hidden = panel.id !== `${selectedView}-view`;
+      });
+      if (updateHash) history.replaceState(null, "", `#${selectedView}`);
+      if (selectedView === "training") renderExerciseLibrary();
+      if (selectedView === "metrics") renderMetrics();
+    }
+    document.querySelectorAll("[data-view-target]").forEach(link => {
+      link.addEventListener("click", event => {
+        event.preventDefault();
+        setActiveView(link.dataset.viewTarget);
+      });
+    });
+    let state = { completed: {}, weights: {}, volume: {}, sessions: [] };
+    let todayPlanId = cyclePlanIds[0];
+    let timerInterval = null;
+    let seconds = 0;
+    let sessionStarted = false;
+    let toastTimeout;
+    document.getElementById("today-date").textContent = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }).toUpperCase();
+
+    async function loadMemberDashboard(member) {
+      const data = await apiRequest("/api/dashboard");
+      stepRecords = data.steps || [];
+      exerciseCatalog = data.catalog || [];
+      exerciseLogs = data.exerciseLogs || [];
+      garminMetrics = { ...garminMetrics, ...(data.garmin || {}) };
+      intensityLogs = data.intensityLogs || [];
+      stepEntries = data.stepEntries || [];
+      const restEntries = (data.restDays || []).map(entry => typeof entry === "string" ? { date: entry, planId: null } : entry);
+      restDays = new Set(restEntries.map(entry => entry.date));
+      restPlans = new Map(restEntries.map(entry => [entry.date, entry.planId]));
+      vacations = data.vacations || [];
+      plans = data.plans.map(plan => ({
+        ...plan,
+        exercises: data.exercises
+          .filter(exercise => exercise.planId === plan.planId)
+          .sort((left, right) => left.order - right.order)
+          .map(exercise => [exercise.name, exercise.details, exercise.muscle])
+      }));
+      const completed = {};
+      const weights = {};
+      const volume = {};
+      data.completions.forEach(item => {
+        const key = `${item.date}:${item.planId}`;
+        if (item.completed !== false) {
+          if (!completed[key]) completed[key] = [];
+          completed[key].push(item.exerciseOrder);
+        }
+        if (item.weightKg !== null && item.weightKg !== undefined) {
+          if (!weights[key]) weights[key] = {};
+          weights[key][item.exerciseOrder] = item.weightKg;
+        }
+        if (item.sets !== null && item.sets !== undefined || item.reps !== null && item.reps !== undefined) {
+          if (!volume[key]) volume[key] = {};
+          volume[key][item.exerciseOrder] = { sets: item.sets ?? null, reps: item.reps ?? null };
+        }
+      });
+      state = { completed, weights, volume, sessions: data.sessions, exerciseLogs };
+      todayPlanId = getTodayCyclePlanId(state.sessions);
+      showDashboard(member);
+      render();
+      renderTodayCardio();
+      renderExerciseLibrary();
+      renderExerciseHistory();
+      renderMetricWeekOptions();
+      setActiveView(getRequestedView());
+    }
+    async function restoreMemberSession() {
+      if (cloudMode) {
+        if (!readCloudSession()?.access_token) return;
+        try {
+          const user = await cloudFetch("/auth/v1/user");
+          const member = await getCloudMember(user);
+          if (!member.subscriptionActive) {
+            showSubscriptionLock(member);
+            return;
+          }
+          await loadMemberDashboard(member);
+        } catch {
+          sessionStorage.removeItem(cloudSessionKey);
+          returnToLogin();
+        }
+        return;
+      }
+      if (!authToken()) return;
+      try {
+        const { member } = await apiRequest("/api/me");
+        await loadMemberDashboard(member);
+      } catch {
+        sessionStorage.removeItem(authStorageKey);
+        returnToLogin();
+      }
+    }
+    function sessionsInRange(start, end) {
+      return state.sessions.filter(session => session.date >= dateKey(start) && session.date <= dateKey(end));
+    }
+    function getTodayPlan() {
+      return plans.find(plan => plan.planId === todayPlanId) || plans[cyclePlanIds[0]];
+    }
+    function formatMinutes(minutes) {
+      return minutes >= 60 ? `${(minutes / 60).toFixed(1)} hrs` : `${minutes} min`;
+    }
+    function renderSteps(records, startDate) {
+      const sortedRecords = [...records].sort((left, right) => left.date.localeCompare(right.date));
+      const chart = document.getElementById("steps-chart");
+      chart.replaceChildren();
+      if (!sortedRecords.length) {
+        document.getElementById("steps-total").textContent = "0";
+        document.getElementById("steps-average").textContent = "0";
+        document.getElementById("steps-goal-days").textContent = "0 / 0";
+        document.getElementById("steps-goal-rate").textContent = "0%";
+        chart.innerHTML = '<div class="steps-empty">No step records for this week.</div>';
+        return;
+      }
+      const total = sortedRecords.reduce((sum, record) => sum + record.steps, 0);
+      const totalGoal = sortedRecords.reduce((sum, record) => sum + record.goal, 0);
+      const daysAtGoal = sortedRecords.filter(record => record.steps >= record.goal).length;
+      const maxSteps = Math.max(1, ...sortedRecords.map(record => Math.max(record.steps, record.goal)));
+      document.getElementById("steps-total").textContent = total.toLocaleString();
+      document.getElementById("steps-average").textContent = Math.round(total / records.length).toLocaleString();
+      document.getElementById("steps-goal-days").textContent = `${daysAtGoal} / ${records.length}`;
+      document.getElementById("steps-goal-rate").textContent = `${totalGoal ? Math.round(total / totalGoal * 100) : 0}%`;
+      chart.setAttribute("aria-label", `Daily steps versus goal for ${sortedRecords.length} days in the week of ${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })}. ${total.toLocaleString()} steps total, goal met on ${daysAtGoal} days.`);
+      sortedRecords.forEach(record => {
+        const day = document.createElement("div");
+        day.className = "steps-day";
+        day.setAttribute("aria-label", `${record.date}: ${record.steps.toLocaleString()} steps, goal ${record.goal.toLocaleString()}`);
+        const dayDate = new Date(`${record.date}T12:00:00`);
+        const label = document.createElement("div");
+        label.className = "steps-day-label";
+        label.textContent = dayDate.toLocaleDateString("en-US", { weekday: "short" });
+        const count = document.createElement("div");
+        count.className = "steps-day-count";
+        count.textContent = record.steps >= 10000 ? `${(record.steps / 1000).toFixed(1)}k` : record.steps.toLocaleString();
+        const track = document.createElement("div");
+        track.className = "steps-track";
+        const goal = document.createElement("span");
+        goal.className = "steps-goal-marker";
+        goal.style.bottom = `${record.goal / maxSteps * 100}%`;
+        const bar = document.createElement("span");
+        bar.className = `steps-bar${record.steps >= record.goal ? " met" : ""}`;
+        bar.style.height = `${Math.max(2, record.steps / maxSteps * 100)}%`;
+        track.append(goal, bar);
+        const dateLabel = document.createElement("div");
+        dateLabel.className = "steps-day-date";
+        dateLabel.textContent = dayDate.getDate();
+        day.append(label, count, track, dateLabel);
+        chart.append(day);
+      });
+    }
+    function renderMetricWeekOptions() {
+      const select = document.getElementById("metric-week-select");
+      const previousValue = select.value;
+      const dates = [
+        ...stepRecords.map(record => record.date),
+        ...state.sessions.map(record => record.date),
+        ...exerciseLogs.map(record => record.date),
+        ...intensityLogs.map(record => record.date),
+        ...stepEntries.map(record => record.date),
+        ...garminMetrics.daily.map(record => record.date),
+        ...garminMetrics.health.map(record => record.date),
+        ...garminMetrics.stress.map(record => record.date),
+        ...garminMetrics.bodyBattery.map(record => record.date),
+        ...garminMetrics.sleep.map(record => record.date),
+        ...garminMetrics.readiness.map(record => record.date),
+        ...garminMetrics.trainingLoad.map(record => record.date),
+        ...garminMetrics.endurance.map(record => record.date)
+      ].filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value));
+      dates.push(dateKey(today));
+      const weekStarts = new Map();
+      dates.forEach(value => {
+        const start = weekStartForDate(value);
+        weekStarts.set(dateKey(start), start);
+      });
+      const currentStart = weekStartForDate(dateKey(today));
+      if (!weekStarts.has(dateKey(currentStart))) weekStarts.set(dateKey(currentStart), currentStart);
+      select.replaceChildren();
+      [...weekStarts.values()].sort((left, right) => right - left).forEach(start => {
+        const end = shiftDate(start, 6);
+        const option = document.createElement("option");
+        option.value = dateKey(start);
+        option.textContent = `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+        select.append(option);
+      });
+      const preferred = weekStarts.has(previousValue) ? previousValue : dateKey(currentStart);
+      select.value = preferred;
+    }
+    const metricDefinitions = {
+      sleep: { label: "Sleep per night", unit: "h", decimals: 1, better: "up" },
+      sleepScore: { label: "Sleep score", unit: "/100", better: "up" },
+      hrv: { label: "Overnight HRV", unit: "ms", better: "up" },
+      restingHr: { label: "Resting heart rate", unit: "bpm", better: "down" },
+      intensity: { label: "Intensity minutes", better: "up", weeklyTotal: true },
+      steps: { label: "Steps per day", unit: "", better: "up" },
+      stress: { label: "Stress", unit: "/100", better: "down" },
+      bodyBattery: { label: "Body Battery peak", unit: "/100", better: "up" }
+    };
+    let dailyLookup = null;
+    function buildDailyLookup() {
+      const byDate = rows => {
+        const map = new Map();
+        (rows || []).forEach(row => { if (row && row.date) map.set(row.date, row); });
+        return map;
+      };
+      return {
+        daily: byDate(garminMetrics.daily),
+        sleep: byDate(garminMetrics.sleep),
+        health: byDate(garminMetrics.health),
+        stress: byDate(garminMetrics.stress),
+        bodyBattery: byDate(garminMetrics.bodyBattery),
+        readiness: byDate(garminMetrics.readiness),
+        steps: byDate(stepRecords),
+        stepEntries: byDate(stepEntries),
+        intensity: byDate(intensityLogs)
+      };
+    }
+    function finiteOrNull(value) {
+      if (value === null || value === undefined || value === "") return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+    function dayMetric(id, key) {
+      const lookup = dailyLookup;
+      switch (id) {
+        case "sleep": { const minutes = finiteOrNull(lookup.sleep.get(key)?.durationMinutes); return minutes ? minutes / 60 : null; }
+        case "inBed": { const minutes = finiteOrNull(lookup.sleep.get(key)?.inBedMinutes); return minutes ? minutes / 60 : null; }
+        case "bedtime": return lookup.sleep.get(key)?.bedtime || null;
+        case "sleepScore": return finiteOrNull(lookup.sleep.get(key)?.score);
+        case "hrv": return finiteOrNull(lookup.health.get(key)?.hrv);
+        case "restingHr": return finiteOrNull(lookup.daily.get(key)?.restingHeartRate);
+        case "intensity": {
+          // Typed minutes win, then the watch; workout time fills days the watch didn't record.
+          const manual = lookup.intensity.get(key);
+          if (manual) return finiteOrNull(manual.minutes);
+          return finiteOrNull(lookup.daily.get(key)?.intensityMinutes) ?? workoutMinutes(key);
+        }
+        case "steps": return finiteOrNull(lookup.stepEntries.get(key)?.steps) ?? finiteOrNull(lookup.steps.get(key)?.steps) ?? finiteOrNull(lookup.daily.get(key)?.steps);
+        case "stress": return finiteOrNull(lookup.stress.get(key)?.value);
+        case "bodyBattery": return finiteOrNull(lookup.bodyBattery.get(key)?.value);
+        case "bodyBatteryLow": return finiteOrNull(lookup.daily.get(key)?.bodyBatteryLow);
+        case "readiness": return finiteOrNull(lookup.readiness.get(key)?.score);
+        default: return null;
+      }
+    }
+    function stepGoalFor(key) {
+      const goal = finiteOrNull(dailyLookup.stepEntries.get(key)?.goal) ?? finiteOrNull(dailyLookup.steps.get(key)?.goal) ?? finiteOrNull(dailyLookup.daily.get(key)?.stepGoal);
+      if (goal) return goal;
+      // No goal recorded for that day: use the most recent one on file.
+      const recent = [...stepRecords, ...garminMetrics.daily.map(row => ({ date: row.date, goal: row.stepGoal }))]
+        .filter(row => finiteOrNull(row.goal))
+        .sort((left, right) => right.date.localeCompare(left.date))[0];
+      return recent ? Number(recent.goal) : 8500;
+    }
+    function workoutMinutes(key) {
+      const sessionMinutes = state.sessions.filter(session => session.date === key).reduce((sum, session) => sum + (Number(session.durationMinutes) || 0), 0);
+      const cardioMinutes = exerciseLogs.filter(log => log.date === key && log.entryType === "time").reduce((sum, log) => sum + (Number(log.durationMinutes) || 0), 0);
+      const activityMinutes = garminMetrics.activities.filter(activity => activity.date === key).reduce((sum, activity) => sum + (Number(activity.durationMinutes) || 0), 0);
+      const total = sessionMinutes + cardioMinutes + activityMinutes;
+      return total > 0 ? total : null;
+    }
+    function intensitySource(key) {
+      if (dailyLookup.intensity.has(key)) return "Typed in";
+      if (finiteOrNull(dailyLookup.daily.get(key)?.intensityMinutes) !== null) return "Watch";
+      return workoutMinutes(key) !== null ? "Workout time" : "";
+    }
+    function weekDays(start) {
+      return Array.from({ length: 7 }, (_, index) => shiftDate(start, index));
+    }
+    function averageOf(values) {
+      const numbers = values.filter(value => value !== null);
+      return numbers.length ? numbers.reduce((sum, value) => sum + value, 0) / numbers.length : null;
+    }
+    function weekMetric(id, start) {
+      const values = weekDays(start).map(date => dayMetric(id, dateKey(date))).filter(value => value !== null);
+      if (!values.length) return null;
+      const total = values.reduce((sum, value) => sum + value, 0);
+      return metricDefinitions[id]?.weeklyTotal ? total : total / values.length;
+    }
+    function priorAverage(id, start, weeks = 4) {
+      return averageOf(Array.from({ length: weeks }, (_, index) => weekMetric(id, shiftDate(start, -7 * (index + 1)))));
+    }
+    function intensityGoal() {
+      const goals = garminMetrics.daily.map(record => finiteOrNull(record.intensityGoal)).filter(value => value);
+      return goals.length ? goals[goals.length - 1] : 150;
+    }
+    function formatNumber(value, decimals = 0) {
+      return value === null || !Number.isFinite(value) ? "—" : value.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+    function isLateBedtime(bedtime) {
+      return Boolean(bedtime) && Number(bedtime.slice(0, 2)) < 6;
+    }
+    function shortRange(start) {
+      const options = { month: "short", day: "numeric" };
+      return `${start.toLocaleDateString("en-US", options)} – ${shiftDate(start, 6).toLocaleDateString("en-US", options)}`;
+    }
+    function makeElement(tag, className, text) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text !== undefined) element.textContent = text;
+      return element;
+    }
+    function renderMetrics() {
+      const weekSelect = document.getElementById("metric-week-select");
+      if (!weekSelect.value) return;
+      dailyLookup = buildDailyLookup();
+      const start = parseDateKey(weekSelect.value);
+      renderMetricCards(start);
+      renderFocus(start);
+      renderSleepChart(start);
+      renderTrends(start);
+      renderRecoveryChart(start);
+      const weekSteps = weekDays(start).map(date => {
+        const key = dateKey(date);
+        const steps = dayMetric("steps", key);
+        return steps !== null ? { date: key, steps, goal: stepGoalFor(key) } : null;
+      }).filter(Boolean);
+      renderSteps(weekSteps, start);
+      renderDailyMetrics(start);
+      renderIntensityForm(start);
+    }
+    function renderMetricCards(start) {
+      const cards = document.getElementById("metric-cards");
+      cards.replaceChildren();
+      Object.entries(metricDefinitions).forEach(([id, definition]) => {
+        const decimals = definition.decimals ?? 0;
+        const value = weekMetric(id, start);
+        const previous = weekMetric(id, shiftDate(start, -7));
+        const average = priorAverage(id, start);
+        const card = makeElement("article", "metric-card");
+        const valueElement = makeElement("div", "metric-card-value", formatNumber(value, decimals));
+        const unit = id === "intensity" ? `/ ${intensityGoal()}` : definition.unit;
+        if (unit && value !== null) valueElement.append(makeElement("small", "", unit));
+        let changeClass = "neutral";
+        let changeText = "No previous-week data";
+        if (value !== null && previous !== null) {
+          const change = Number((value - previous).toFixed(decimals));
+          if (change === 0) changeText = "No change vs last week";
+          else {
+            const improved = definition.better === "up" ? change > 0 : change < 0;
+            changeClass = improved ? "positive" : "negative";
+            changeText = `${change > 0 ? "+" : ""}${formatNumber(change, decimals)} vs last week`;
+          }
+        }
+        card.append(
+          makeElement("div", "metric-card-label", definition.label),
+          valueElement,
+          makeElement("div", `metric-card-change ${changeClass}`, changeText),
+          makeElement("div", "metric-card-avg", `4-wk avg ${formatNumber(average, decimals)}`)
+        );
+        cards.append(card);
+      });
+    }
+    function buildFocusItems(start) {
+      const items = [];
+      const nights = weekDays(start).map(date => ({ hours: dayMetric("sleep", dateKey(date)), bedtime: dayMetric("bedtime", dateKey(date)) }));
+      const sleepAverage = weekMetric("sleep", start);
+      if (sleepAverage !== null) {
+        const shortNights = nights.filter(night => night.hours !== null && night.hours < 6).length;
+        if (sleepAverage < 7) {
+          items.push({ level: sleepAverage < 6 ? "fix" : "watch", title: "Sleep is the priority", copy: `You averaged ${sleepAverage.toFixed(1)} h a night, with ${shortNights} night${shortNights === 1 ? "" : "s"} under 6 h. Aim for 7.` });
+        } else {
+          items.push({ level: "good", title: "Sleep is on target", copy: `You averaged ${sleepAverage.toFixed(1)} h a night. Keep the same routine.` });
+        }
+      }
+      const lateNights = nights.filter(night => isLateBedtime(night.bedtime));
+      if (lateNights.length >= 2) {
+        const lateHours = averageOf(lateNights.map(night => night.hours));
+        const otherHours = averageOf(nights.filter(night => night.bedtime && !isLateBedtime(night.bedtime)).map(night => night.hours));
+        let copy = `${lateNights.length} bedtimes were after midnight.`;
+        if (lateHours !== null && otherHours !== null && otherHours > lateHours) copy += ` You slept ${(otherHours - lateHours).toFixed(1)} h less on those nights.`;
+        items.push({ level: "watch", title: "Late nights cost you sleep", copy: `${copy} Lights out by 11 PM is your biggest lever.` });
+      }
+      const intensity = weekMetric("intensity", start);
+      const goal = intensityGoal();
+      if (intensity !== null) {
+        const shortfall = Math.round(goal - intensity);
+        if (shortfall > 0) {
+          const walks = Math.ceil(shortfall / 30);
+          items.push({ level: "watch", title: "Short on activity", copy: `${Math.round(intensity)} intensity minutes, ${shortfall} short of ${goal}. ${walks === 1 ? "One more brisk 30-minute walk would" : `About ${walks} brisk 30-minute walks would`} close it.` });
+        } else {
+          items.push({ level: "good", title: "Activity goal met", copy: `${Math.round(intensity)} intensity minutes against a goal of ${goal}.` });
+        }
+      }
+      const hrv = weekMetric("hrv", start);
+      const hrvAverage = priorAverage("hrv", start);
+      if (hrv !== null && hrvAverage !== null && hrv < hrvAverage * 0.9) {
+        items.push({ level: "watch", title: "HRV is below your normal", copy: `${Math.round(hrv)} ms vs. a 4-week average of ${Math.round(hrvAverage)} ms. Keep hard sessions lighter until it recovers.` });
+      }
+      const restingHr = weekMetric("restingHr", start);
+      const restingAverage = priorAverage("restingHr", start);
+      if (restingHr !== null && restingAverage !== null && restingHr - restingAverage >= 3) {
+        items.push({ level: "watch", title: "Resting heart rate is up", copy: `${Math.round(restingHr)} bpm vs. a 4-week average of ${Math.round(restingAverage)}. Often a sign of short sleep, stress or illness.` });
+      }
+      const stress = weekMetric("stress", start);
+      const stressAverage = priorAverage("stress", start);
+      if (stress !== null && stressAverage !== null && stress - stressAverage >= 5) {
+        items.push({ level: "watch", title: "Stress is running higher", copy: `Average stress ${Math.round(stress)} vs. ${Math.round(stressAverage)} over the past 4 weeks.` });
+      }
+      if (!items.length) {
+        items.push({ level: "watch", title: "Not enough watch data for this week", copy: "Sleep, HRV and intensity drive these tips. Add a newer Garmin export to the data folder, or log intensity minutes below." });
+      }
+      const order = { fix: 0, watch: 1, good: 2 };
+      return items.sort((left, right) => order[left.level] - order[right.level]);
+    }
+    function renderFocus(start) {
+      const items = buildFocusItems(start);
+      const list = document.getElementById("metric-focus-list");
+      list.replaceChildren();
+      items.forEach(item => {
+        const row = makeElement("li", "focus-item");
+        const body = makeElement("div");
+        body.append(makeElement("div", "focus-title", item.title), makeElement("div", "focus-copy", item.copy));
+        row.append(makeElement("span", `focus-badge ${item.level}`, item.level), body);
+        list.append(row);
+      });
+      const headline = document.getElementById("metric-headline");
+      headline.replaceChildren(makeElement("strong", "", `${items[0].title}. `), document.createTextNode(items[0].copy));
+    }
+    function makeChartAxis(ticks, max, height) {
+      const axis = makeElement("div", "chart-axis");
+      axis.setAttribute("aria-hidden", "true");
+      ticks.forEach(tick => {
+        const label = makeElement("span", "", String(tick));
+        label.style.bottom = `${tick / max * height}px`;
+        axis.append(label);
+      });
+      return axis;
+    }
+    function renderSleepChart(start) {
+      const chart = document.getElementById("sleep-chart");
+      chart.replaceChildren();
+      const height = 150;
+      const days = weekDays(start).map(date => {
+        const key = dateKey(date);
+        return { date, asleep: dayMetric("sleep", key), inBed: dayMetric("inBed", key), bedtime: dayMetric("bedtime", key) };
+      });
+      const max = Math.max(10, Math.ceil(Math.max(0, ...days.map(day => Math.max(day.asleep || 0, day.inBed || 0)))));
+      chart.append(makeChartAxis([0, 4, 8], max, height));
+      const goalLine = makeElement("div", "chart-goal-line");
+      goalLine.style.top = `${height - 7 / max * height}px`;
+      goalLine.append(makeElement("span", "", "7 h"));
+      chart.append(goalLine);
+      days.forEach(day => {
+        const column = makeElement("div", "chart-day");
+        const track = makeElement("div", "chart-track");
+        if (day.inBed !== null) {
+          const inBed = makeElement("span", "sleep-bar in-bed");
+          inBed.style.height = `${day.inBed / max * 100}%`;
+          track.append(inBed);
+        }
+        if (day.asleep !== null) {
+          const asleep = makeElement("span", "sleep-bar asleep");
+          asleep.style.height = `${day.asleep / max * 100}%`;
+          asleep.title = `${day.asleep.toFixed(1)} h asleep`;
+          track.append(asleep);
+        }
+        if (day.asleep === null && day.inBed === null) track.append(makeElement("span", "chart-day-empty", "—"));
+        column.append(
+          track,
+          makeElement("div", "chart-day-label", day.date.toLocaleDateString("en-US", { weekday: "short" })),
+          makeElement("div", `chart-day-note${isLateBedtime(day.bedtime) ? " late" : ""}`, day.bedtime || "—")
+        );
+        chart.append(column);
+      });
+      const summary = days.filter(day => day.asleep !== null).map(day => `${day.date.toLocaleDateString("en-US", { weekday: "short" })} ${day.asleep.toFixed(1)} h, bedtime ${day.bedtime || "unknown"}`);
+      chart.setAttribute("aria-label", summary.length ? `Sleep for ${shortRange(start)}: ${summary.join("; ")}.` : `No sleep data for ${shortRange(start)}.`);
+    }
+    function renderRecoveryChart(start) {
+      const chart = document.getElementById("recovery-chart");
+      chart.replaceChildren();
+      const height = 150;
+      chart.append(makeChartAxis([0, 25, 50, 75, 100], 100, height));
+      const summary = [];
+      weekDays(start).forEach(date => {
+        const key = dateKey(date);
+        const high = dayMetric("bodyBattery", key);
+        const low = dayMetric("bodyBatteryLow", key);
+        const stress = dayMetric("stress", key);
+        const column = makeElement("div", "chart-day");
+        const track = makeElement("div", "chart-track");
+        if (high !== null) {
+          const bottom = low !== null && low < high ? low : Math.max(0, high - 2);
+          const range = makeElement("span", "recovery-range");
+          range.style.bottom = `${bottom}%`;
+          range.style.height = `${high - bottom}%`;
+          range.title = low !== null ? `Body Battery ${low}–${high}` : `Body Battery peak ${high}`;
+          track.append(range);
+        }
+        if (stress !== null) {
+          const dot = makeElement("span", "recovery-dot");
+          dot.style.bottom = `${stress}%`;
+          dot.title = `Average stress ${Math.round(stress)}`;
+          track.append(dot);
+        }
+        if (high === null && stress === null) track.append(makeElement("span", "chart-day-empty", "—"));
+        column.append(
+          track,
+          makeElement("div", "chart-day-label", date.toLocaleDateString("en-US", { weekday: "short" })),
+          makeElement("div", "chart-day-note", stress !== null ? `Stress ${Math.round(stress)}` : "—")
+        );
+        chart.append(column);
+        if (high !== null || stress !== null) summary.push(`${date.toLocaleDateString("en-US", { weekday: "short" })}: Body Battery ${low ?? "?"}–${high ?? "?"}, stress ${stress !== null ? Math.round(stress) : "?"}`);
+      });
+      chart.setAttribute("aria-label", summary.length ? `Recovery and stress for ${shortRange(start)}. ${summary.join("; ")}.` : `No recovery data for ${shortRange(start)}.`);
+    }
+    function renderTrends(start) {
+      const grid = document.getElementById("trend-grid");
+      grid.replaceChildren();
+      const weeks = Array.from({ length: 12 }, (_, index) => shiftDate(start, -7 * (11 - index)));
+      const trends = [
+        { id: "sleep", label: "Sleep per night", unit: "h", decimals: 1, goal: 7, color: "#D8C0A0" },
+        { id: "hrv", label: "Overnight HRV", unit: "ms", color: "#8FB3B8" },
+        { id: "restingHr", label: "Resting heart rate", unit: "bpm", color: "#C07E50" },
+        { id: "intensity", label: "Intensity minutes", unit: "min", goal: intensityGoal(), color: "#9C8270", bars: true }
+      ];
+      const width = 240;
+      const height = 86;
+      const pad = 6;
+      trends.forEach(trend => {
+        const values = weeks.map(week => weekMetric(trend.id, week));
+        const known = values.filter(value => value !== null);
+        const card = makeElement("div", "trend-card");
+        const head = makeElement("div", "trend-head");
+        const latest = values[values.length - 1];
+        head.append(makeElement("span", "trend-label", trend.label), makeElement("span", "trend-value", latest !== null ? `${formatNumber(latest, trend.decimals ?? 0)} ${trend.unit}` : "—"));
+        card.append(head);
+        const scaleValues = trend.goal ? [...known, trend.goal] : known;
+        let min = trend.bars ? 0 : Math.min(...scaleValues);
+        let max = Math.max(...scaleValues);
+        if (!scaleValues.length) { min = 0; max = 1; }
+        if (max === min) { max += 1; min -= trend.bars ? 0 : 1; }
+        const spread = max - min;
+        if (!trend.bars) { min -= spread * 0.1; max += spread * 0.1; }
+        const x = index => pad + index * (width - pad * 2) / (weeks.length - 1);
+        const y = value => height - pad - (value - min) / (max - min) * (height - pad * 2);
+        let shapes = "";
+        if (trend.goal) {
+          shapes += `<line x1="0" x2="${width}" y1="${y(trend.goal)}" y2="${y(trend.goal)}" stroke="#D8C0A0" stroke-dasharray="3 3" stroke-width="1"/>`;
+          shapes += `<text x="${width}" y="${y(trend.goal) - 3}" text-anchor="end" fill="#D8C0A0" font-family="DM Mono, monospace" font-size="8">${trend.goal}</text>`;
+        }
+        if (trend.bars) {
+          const barWidth = (width - pad * 2) / weeks.length * 0.6;
+          values.forEach((value, index) => {
+            if (value === null) return;
+            const top = y(value);
+            const opacity = index === values.length - 1 ? 1 : 0.45;
+            shapes += `<rect x="${x(index) - barWidth / 2}" y="${top}" width="${barWidth}" height="${Math.max(1, height - pad - top)}" rx="1" fill="${trend.color}" opacity="${opacity}"/>`;
+          });
+        } else {
+          let path = "";
+          let drawing = false;
+          values.forEach((value, index) => {
+            if (value === null) { drawing = false; return; }
+            path += `${drawing ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)} `;
+            drawing = true;
+          });
+          shapes += `<path d="${path}" fill="none" stroke="${trend.color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`;
+          values.forEach((value, index) => {
+            if (value === null) return;
+            const last = index === values.length - 1;
+            shapes += `<circle cx="${x(index)}" cy="${y(value)}" r="${last ? 4 : 1.8}" fill="${trend.color}"${last ? ' stroke="#123039" stroke-width="2"' : ""}/>`;
+          });
+        }
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", `${trend.label}, weekly, ${weeks[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })} to ${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })}: ${values.map(value => formatNumber(value, trend.decimals ?? 0)).join(", ")}`);
+        svg.innerHTML = shapes;
+        const range = makeElement("div", "trend-range");
+        range.append(makeElement("span", "", weeks[0].toLocaleDateString("en-US", { month: "short", day: "numeric" })), makeElement("span", "", start.toLocaleDateString("en-US", { month: "short", day: "numeric" })));
+        card.append(svg, range);
+        grid.append(card);
+      });
+    }
+    function renderDailyMetrics(start) {
+      const rows = document.getElementById("daily-metric-rows");
+      rows.replaceChildren();
+      document.getElementById("daily-metric-range").textContent = shortRange(start);
+      const columns = [
+        { id: "sleep", decimals: 1 },
+        { id: "inBed", decimals: 1 },
+        { id: "sleepScore" },
+        { id: "bedtime", text: true },
+        { id: "hrv" },
+        { id: "restingHr" },
+        { id: "steps" },
+        { id: "intensity" },
+        { id: "stress" },
+        { id: "bodyBattery" },
+        { id: "readiness" }
+      ];
+      weekDays(start).forEach(date => {
+        const key = dateKey(date);
+        const row = makeElement("tr");
+        row.append(makeElement("td", "", date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })));
+        columns.forEach(column => {
+          if (column.id === "steps") {
+            row.append(makeStepsCell(date, key));
+            return;
+          }
+          const value = dayMetric(column.id, key);
+          const cell = makeElement("td", "", value === null ? "—" : column.text ? value : formatNumber(value, column.decimals ?? 0));
+          if (value === null) cell.className = "metric-no-data";
+          else if (column.id === "bedtime" && isLateBedtime(value)) cell.className = "metric-change negative";
+          if (column.id === "intensity" && value !== null) cell.title = intensitySource(key);
+          row.append(cell);
+        });
+        rows.append(row);
+      });
+    }
+    function makeStepsCell(date, key) {
+      const cell = makeElement("td", "steps-cell");
+      const input = makeElement("input", "table-input");
+      input.type = "number";
+      input.min = "0";
+      input.max = "200000";
+      input.step = "1";
+      input.inputMode = "numeric";
+      const typed = dailyLookup.stepEntries.has(key);
+      const value = dayMetric("steps", key);
+      input.value = value === null ? "" : String(value);
+      input.placeholder = "—";
+      if (typed) input.classList.add("typed");
+      input.title = typed ? "Typed in · clear to go back to watch data" : "Type to update steps for this day";
+      input.setAttribute("aria-label", `Steps on ${date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`);
+      if (key > dateKey(today)) input.disabled = true;
+      const original = input.value;
+      input.addEventListener("keydown", event => { if (event.key === "Enter") input.blur(); });
+      input.addEventListener("change", async () => {
+        const raw = input.value.trim();
+        if (raw === original) return;
+        const steps = raw === "" ? null : Math.round(Number(raw));
+        if (steps !== null && (!Number.isFinite(steps) || steps < 0 || steps > 200000)) {
+          showToast("Enter steps between 0 and 200,000.");
+          input.value = original;
+          return;
+        }
+        // Clearing a box only removes a typed entry; watch data stays.
+        if (steps === null && !typed) { input.value = original; return; }
+        input.disabled = true;
+        try {
+          const goal = stepGoalFor(key);
+          await apiRequest("/api/steps", { method: "POST", body: { date: key, steps, goal } });
+          stepEntries = stepEntries.filter(entry => entry.date !== key);
+          if (steps !== null) stepEntries.push({ date: key, steps, goal });
+          renderMetrics();
+          showToast(steps === null ? "Steps reset to watch data." : `Steps saved · ${steps.toLocaleString()} on ${date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}.`);
+        } catch (error) {
+          input.disabled = false;
+          input.value = original;
+          showToast(error.message);
+        }
+      });
+      cell.append(input);
+      return cell;
+    }
+    function renderIntensityForm(start) {
+      const container = document.getElementById("intensity-days");
+      container.replaceChildren();
+      weekDays(start).forEach(date => {
+        const key = dateKey(date);
+        const field = makeElement("label", "control-field");
+        const input = makeElement("input", "access-input");
+        input.type = "number";
+        input.min = "0";
+        input.max = "1440";
+        input.inputMode = "numeric";
+        input.dataset.date = key;
+        const manual = dailyLookup.intensity.get(key);
+        input.value = manual ? String(manual.minutes) : "";
+        input.dataset.original = input.value;
+        const fallback = finiteOrNull(dailyLookup.daily.get(key)?.intensityMinutes) ?? workoutMinutes(key);
+        input.placeholder = fallback !== null ? String(fallback) : "—";
+        field.append(makeElement("span", "", date.toLocaleDateString("en-US", { weekday: "short", day: "numeric" })), input);
+        container.append(field);
+      });
+    }
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.classList.remove("show"), 2400);
+    }
+    function renderExercises() {
+      const plan = getTodayPlan();
+      const list = document.getElementById("exercise-list");
+      const key = `${dateKey(today)}:${todayPlanId}`;
+      const done = state.completed[key] || [];
+      const weights = state.weights[key] || {};
+      const volume = state.volume[key] || {};
+      list.replaceChildren();
+      plan.exercises.forEach(([name, meta, muscle], index) => {
+        const row = document.createElement("div");
+        row.className = `exercise${done.includes(index) ? " done" : ""}`;
+        const number = document.createElement("span");
+        number.className = "exercise-index";
+        number.textContent = String(index + 1).padStart(2, "0");
+        const details = document.createElement("div");
+        const title = document.createElement("div");
+        title.className = "exercise-name";
+        title.textContent = name;
+        const info = document.createElement("div");
+        info.className = "exercise-meta";
+        info.textContent = meta;
+        details.append(title, info);
+        // The plan's target ("4 sets · 8 reps") shows as a hint until real numbers are typed.
+        const targetSets = meta.match(/(\d+)\s*sets?/i)?.[1];
+        const targetReps = meta.match(/(\d+)\s*reps?/i)?.[1];
+        const makeField = (label, value, placeholder, attributes) => {
+          const field = document.createElement("label");
+          field.className = "exercise-field";
+          const caption = document.createElement("span");
+          caption.textContent = label;
+          const input = document.createElement("input");
+          input.className = "exercise-weight";
+          input.type = "number";
+          input.inputMode = attributes.step === "1" ? "numeric" : "decimal";
+          Object.assign(input, attributes);
+          input.placeholder = placeholder;
+          input.value = value ?? "";
+          input.setAttribute("aria-label", `${label} for ${name}`);
+          field.append(caption, input);
+          return { field, input };
+        };
+        const sets = makeField("Sets", volume[index]?.sets, targetSets || "–", { min: "1", max: "30", step: "1" });
+        const reps = makeField("Reps", volume[index]?.reps, targetReps || "–", { min: "1", max: "100", step: "1" });
+        const weight = makeField("kg", weights[index], "–", { min: "0", max: "2000", step: "0.5" });
+        const inputs = document.createElement("div");
+        inputs.className = "exercise-inputs";
+        inputs.append(sets.field, reps.field, weight.field);
+        const muscleLabel = document.createElement("span");
+        muscleLabel.className = "exercise-muscle";
+        muscleLabel.textContent = muscle;
+        const check = document.createElement("input");
+        check.className = "check";
+        check.type = "checkbox";
+        check.checked = done.includes(index);
+        check.setAttribute("aria-label", `Mark ${name} complete`);
+        const save = () => saveTodayExercise(index, { completed: check.checked, weight: weight.input.value, sets: sets.input.value, reps: reps.input.value });
+        [sets.input, reps.input, weight.input].forEach(input => input.addEventListener("change", save));
+        check.addEventListener("change", save);
+        row.append(number, details, inputs, muscleLabel, check);
+        list.append(row);
+      });
+      document.getElementById("exercise-count").textContent = `${done.length} / ${plan.exercises.length} complete`;
+    }
+    async function saveTodayExercise(order, entry) {
+      const key = `${dateKey(today)}:${todayPlanId}`;
+      const toNumber = value => value === "" || value === null || value === undefined ? null : Number(value);
+      const weightKg = toNumber(entry.weight);
+      const sets = toNumber(entry.sets);
+      const reps = toNumber(entry.reps);
+      const invalid = (weightKg !== null && !(weightKg >= 0 && weightKg <= 2000))
+        || (sets !== null && !(Number.isInteger(sets) && sets >= 1 && sets <= 30))
+        || (reps !== null && !(Number.isInteger(reps) && reps >= 1 && reps <= 100));
+      if (invalid) {
+        showToast("Use 1–30 sets, 1–100 reps and 0–2000 kg.");
+        renderExercises();
+        return;
+      }
+      const previousCompleted = [...(state.completed[key] || [])];
+      const previousWeight = state.weights[key]?.[order];
+      const previousVolume = state.volume[key]?.[order];
+      state.completed[key] = entry.completed ? [...new Set([...previousCompleted, order])] : previousCompleted.filter(item => item !== order);
+      if (!state.weights[key]) state.weights[key] = {};
+      if (weightKg === null) delete state.weights[key][order];
+      else state.weights[key][order] = weightKg;
+      if (!state.volume[key]) state.volume[key] = {};
+      if (sets === null && reps === null) delete state.volume[key][order];
+      else state.volume[key][order] = { sets, reps };
+      try {
+        await apiRequest("/api/completions", {
+          method: "POST",
+          body: { date: dateKey(today), planId: todayPlanId, exerciseOrder: order, completed: entry.completed, weightKg, sets, reps }
+        });
+      } catch (error) {
+        state.completed[key] = previousCompleted;
+        if (previousWeight === undefined) delete state.weights[key][order];
+        else state.weights[key][order] = previousWeight;
+        if (previousVolume === undefined) delete state.volume[key][order];
+        else state.volume[key][order] = previousVolume;
+        showToast(error.message);
+      }
+      renderExercises();
+      renderWorkoutLog();
+      renderStrengthProgress();
+    }
+    function updateLogFields() {
+      const exercise = exerciseCatalog.find(item => item.exerciseId === document.getElementById("selected-exercise").value);
+      const isTime = exercise?.entryType === "time";
+      document.getElementById("time-fields").hidden = !isTime;
+      document.getElementById("strength-fields").hidden = isTime;
+      document.querySelectorAll("#time-fields input").forEach(input => {
+        input.disabled = !isTime;
+        input.required = isTime;
+      });
+      document.querySelectorAll("#strength-fields input").forEach(input => {
+        input.disabled = isTime;
+        input.required = !isTime && input.id !== "log-weight";
+      });
+    }
+    function renderExerciseLibrary() {
+      const categorySelect = document.getElementById("exercise-category");
+      const search = document.getElementById("exercise-search");
+      const exerciseSelect = document.getElementById("selected-exercise");
+      if (!exerciseCatalog.length) return;
+      const selectedId = exerciseSelect.value;
+      const selectedCategory = categorySelect.value || "all";
+      const categoryOptions = [...new Set(exerciseCatalog.map(item => item.category))].sort((left, right) => left.localeCompare(right));
+      categorySelect.replaceChildren(new Option("All exercises", "all"), ...categoryOptions.map(category => new Option(category, category)));
+      categorySelect.value = categoryOptions.includes(selectedCategory) ? selectedCategory : "all";
+      exerciseSelect.replaceChildren(...exerciseCatalog.map(item => new Option(item.name, item.exerciseId)));
+      if (exerciseCatalog.some(item => item.exerciseId === selectedId)) exerciseSelect.value = selectedId;
+      const selectedExercise = exerciseCatalog.find(item => item.exerciseId === exerciseSelect.value) || exerciseCatalog[0];
+      exerciseSelect.value = selectedExercise.exerciseId;
+      updateLogFields();
+      const query = search.value.trim().toLowerCase();
+      const filtered = exerciseCatalog.filter(item => {
+        const matchesCategory = categorySelect.value === "all" || item.category === categorySelect.value;
+        const matchesSearch = !query || `${item.name} ${item.category} ${item.details}`.toLowerCase().includes(query);
+        return matchesCategory && matchesSearch;
+      });
+      const list = document.getElementById("catalog-list");
+      list.replaceChildren();
+      document.getElementById("catalog-count").textContent = `${exerciseCatalog.length} exercises`;
+      document.getElementById("catalog-visible-count").textContent = `${filtered.length} shown`;
+      if (!filtered.length) {
+        list.innerHTML = '<div class="empty-state">No exercises match this filter.</div>';
+        return;
+      }
+      filtered.forEach(item => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `catalog-row${item.exerciseId === selectedExercise.exerciseId ? " selected" : ""}`;
+        button.setAttribute("aria-pressed", String(item.exerciseId === selectedExercise.exerciseId));
+        const details = document.createElement("span");
+        const title = document.createElement("span");
+        title.className = "catalog-name";
+        title.textContent = item.name;
+        const meta = document.createElement("span");
+        meta.className = "catalog-details";
+        meta.textContent = item.entryType === "time" ? "Time-based activity" : item.details;
+        details.append(title, meta);
+        const category = document.createElement("span");
+        category.className = "catalog-category";
+        category.textContent = item.category;
+        button.append(details, category);
+        button.addEventListener("click", () => {
+          exerciseSelect.value = item.exerciseId;
+          updateLogFields();
+          renderExerciseLibrary();
+        });
+        list.append(button);
+      });
+    }
+    function renderTodayCardio() {
+      const select = document.getElementById("today-cardio-select");
+      if (!exerciseCatalog.length) return;
+      const previous = select.value;
+      const cardio = exerciseCatalog.filter(item => item.category.toLowerCase() === "cardio" && item.entryType === "time");
+      select.replaceChildren(new Option("None", ""), ...cardio.map(item => new Option(item.name, item.exerciseId)));
+      select.value = cardio.some(item => item.exerciseId === previous) ? previous : "";
+      updateTodayCardioControls();
+    }
+    function updateTodayCardioControls() {
+      const selected = document.getElementById("today-cardio-select").value;
+      const duration = document.getElementById("today-cardio-duration");
+      duration.disabled = !selected;
+      document.getElementById("today-cardio-duration-field").hidden = !selected;
+      document.getElementById("add-today-cardio").disabled = !selected;
+    }
+    function renderExerciseHistory() {
+      renderWorkoutLog();
+      renderStrengthProgress();
+      const body = document.getElementById("exercise-log-rows");
+      if (!body) return;
+      body.replaceChildren();
+      const ordered = [...exerciseLogs].sort((left, right) => right.date.localeCompare(left.date) || String(right.createdAt).localeCompare(String(left.createdAt)));
+      document.getElementById("exercise-log-count").textContent = `${ordered.length} entries`;
+      if (!ordered.length) {
+        const row = document.createElement("tr");
+        const empty = document.createElement("td");
+        empty.colSpan = 5;
+        empty.className = "metric-no-data";
+        empty.textContent = "No independently logged exercises yet.";
+        row.append(empty);
+        body.append(row);
+        return;
+      }
+      ordered.slice(0, 20).forEach(log => {
+        const row = document.createElement("tr");
+        const date = document.createElement("td");
+        date.textContent = log.date;
+        const exercise = document.createElement("td");
+        exercise.textContent = log.exerciseName;
+        const details = document.createElement("td");
+        details.textContent = log.entryType === "time" ? `${log.durationMinutes} min` : `${log.sets} × ${log.reps}`;
+        const weight = document.createElement("td");
+        weight.textContent = log.entryType === "time" || log.weightKg === null || log.weightKg === undefined ? "—" : `${log.weightKg} kg`;
+        const action = document.createElement("td");
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "delete-log";
+        remove.textContent = "×";
+        remove.title = "Delete exercise history entry";
+        remove.setAttribute("aria-label", `Delete ${log.exerciseName} from ${log.date}`);
+        remove.addEventListener("click", async () => {
+          remove.disabled = true;
+          try {
+            await apiRequest(`/api/exercise-logs/${encodeURIComponent(log.id)}`, { method: "DELETE" });
+            exerciseLogs = exerciseLogs.filter(item => item.id !== log.id);
+            state.exerciseLogs = exerciseLogs;
+            renderExerciseHistory();
+            renderMetrics();
+            showToast("Exercise history entry deleted.");
+          } catch (error) {
+            remove.disabled = false;
+            showToast(error.message);
+          }
+        });
+        action.append(remove);
+        row.append(date, exercise, details, weight, action);
+        body.append(row);
+      });
+    }
+    function renderStats() {
+      renderMetrics();
+      renderWorkoutLog();
+    }
+    function planTitle(planId) {
+      return plans.find(plan => plan.planId === planId)?.title || "Workout";
+    }
+    function workoutEntries() {
+      // App sessions plus activities recorded on the Garmin watch, newest first.
+      const sessions = state.sessions.map(session => ({ ...session, source: "FORM", title: planTitle(session.planId), sortTime: session.completedAt || "" }));
+      const activities = garminMetrics.activities.map(activity => ({ ...activity, source: "Garmin", title: activity.name || "Garmin activity", sortTime: activity.startedAt || "" }));
+      return [...sessions, ...activities].sort((left, right) => right.date.localeCompare(left.date) || String(right.sortTime).localeCompare(String(left.sortTime)));
+    }
+    function workoutDays() {
+      // Any session, Garmin activity, checked-off exercise or logged exercise marks the day.
+      const days = new Map();
+      const dayFor = date => {
+        if (!days.has(date)) days.set(date, { workouts: [], completions: 0, logs: 0 });
+        return days.get(date);
+      };
+      workoutEntries().forEach(entry => dayFor(entry.date).workouts.push(entry));
+      Object.entries(state.completed).forEach(([key, orders]) => {
+        if (orders && orders.length) dayFor(key.split(":")[0]).completions += orders.length;
+      });
+      exerciseLogs.forEach(log => { dayFor(log.date).logs += 1; });
+      return days;
+    }
+    let selectedWorkoutDate = null;
+    function renderWorkoutLog() {
+      const calendar = document.getElementById("workout-calendar");
+      if (!calendar || !plans.length) return;
+      const days = workoutDays();
+      const todayKey = dateKey(today);
+      const firstWeek = shiftDate(weekStartForDate(todayKey), -7 * 11);
+      calendar.replaceChildren();
+      for (let index = 0; index < 84; index += 1) {
+        const date = shiftDate(firstWeek, index);
+        const key = dateKey(date);
+        const day = days.get(key);
+        const cell = makeElement("button", "calendar-day");
+        cell.type = "button";
+        const vacation = vacationFor(key);
+        if (day?.workouts.length) cell.classList.add("workout");
+        else if (day) cell.classList.add("activity");
+        else if (vacation) cell.classList.add("vacation");
+        else if (restDays.has(key)) cell.classList.add("rest");
+        if (key === todayKey) cell.classList.add("today");
+        if (key > todayKey) { cell.classList.add("future"); cell.disabled = true; }
+        if (key === selectedWorkoutDate) cell.classList.add("selected");
+        const minutes = day ? day.workouts.reduce((sum, workout) => sum + (Number(workout.durationMinutes) || 0), 0) : 0;
+        cell.append(makeElement("span", "", date.getDate() === 1 || index === 0 ? date.toLocaleDateString("en-US", { month: "short", day: "numeric" }) : String(date.getDate())));
+        if (minutes) cell.append(makeElement("small", "", `${minutes}m`));
+        const parts = [date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })];
+        if (day?.workouts.length) parts.push(day.workouts.map(workout => `${workout.title} ${workout.durationMinutes} min`).join(", "));
+        if (day?.completions) parts.push(`${day.completions} exercise${day.completions === 1 ? "" : "s"} checked off`);
+        if (day?.logs) parts.push(`${day.logs} exercise log${day.logs === 1 ? "" : "s"}`);
+        if (vacation) parts.push(`vacation${vacation.label ? ` (${vacation.label})` : ""}`);
+        if (restDays.has(key)) parts.push("no training (rest day)");
+        if (!day && !vacation && !restDays.has(key)) parts.push("no workout");
+        cell.setAttribute("aria-label", parts.join(" · "));
+        cell.title = parts.join("\n");
+        cell.addEventListener("click", () => {
+          selectedWorkoutDate = key;
+          document.getElementById("workout-entry-date").value = key;
+          renderWorkoutLog();
+          document.getElementById("workout-entry-minutes").focus();
+        });
+        calendar.append(cell);
+      }
+      const activeDates = [...days.keys()].filter(key => key <= todayKey);
+      const thisWeek = dateKey(weekStartForDate(todayKey));
+      const thisMonth = todayKey.slice(0, 7);
+      let streak = 0;
+      for (let week = weekStartForDate(todayKey); ; week = shiftDate(week, -7)) {
+        const start = dateKey(week);
+        const end = dateKey(shiftDate(week, 6));
+        const active = activeDates.some(key => key >= start && key <= end);
+        const onVacation = vacations.some(vacation => vacation.startDate <= end && vacation.endDate >= start);
+        if (active) streak += 1;
+        else if (start !== thisWeek && !onVacation) break;
+        if (streak > 520 || week < parseDateKey("2000-01-03")) break;
+      }
+      renderInactivityWarning();
+      renderVacations();
+      const stats = [
+        [activeDates.filter(key => key >= thisWeek).length, "Days this week"],
+        [activeDates.filter(key => key.startsWith(thisMonth)).length, "Days this month"],
+        [activeDates.filter(key => key >= dateKey(firstWeek)).length, "Days in 12 weeks"],
+        [`${streak} wk`, "Week streak"]
+      ];
+      const statsGrid = document.getElementById("workout-stats");
+      statsGrid.replaceChildren(...stats.map(([value, label]) => {
+        const item = makeElement("div", "history-item");
+        item.append(makeElement("div", "history-number", String(value)), makeElement("div", "history-label", label));
+        return item;
+      }));
+      const planSelect = document.getElementById("workout-entry-plan");
+      if (!planSelect.options.length) {
+        planSelect.replaceChildren(...plans.map(plan => new Option(plan.title, plan.planId)));
+        planSelect.value = String(todayPlanId);
+      }
+      const dateInput = document.getElementById("workout-entry-date");
+      dateInput.max = todayKey;
+      if (!dateInput.value) dateInput.value = todayKey;
+      const rows = document.getElementById("workout-rows");
+      rows.replaceChildren();
+      const ordered = workoutEntries();
+      document.getElementById("workout-count").textContent = `${ordered.length} workout${ordered.length === 1 ? "" : "s"}`;
+      if (!ordered.length) {
+        const row = makeElement("tr");
+        const empty = makeElement("td", "metric-no-data", "No workouts yet. Finish a session on Today or add one here.");
+        empty.colSpan = 6;
+        row.append(empty);
+        rows.append(row);
+        return;
+      }
+      ordered.slice(0, 20).forEach(session => {
+        const row = makeElement("tr");
+        const date = parseDateKey(session.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: session.date.slice(0, 4) === todayKey.slice(0, 4) ? undefined : "numeric" });
+        const completed = session.source === "FORM" ? state.completed[`${session.date}:${session.planId}`]?.length || 0 : 0;
+        row.append(makeElement("td", "", date), makeElement("td", "", session.title), makeElement("td", "", `${session.durationMinutes} min`), makeElement("td", "", completed ? String(completed) : "—"), makeElement("td", "catalog-category", session.source));
+        const actions = makeElement("td");
+        if (session.source === "FORM" && session.id) {
+          const remove = makeElement("button", "delete-log", "×");
+          remove.type = "button";
+          remove.setAttribute("aria-label", `Delete ${session.title} on ${date}`);
+          remove.addEventListener("click", async () => {
+            if (!confirm(`Delete the ${session.title} on ${date}?`)) return;
+            remove.disabled = true;
+            try {
+              await apiRequest(`/api/sessions/${encodeURIComponent(session.id)}`, { method: "DELETE" });
+              state.sessions = state.sessions.filter(item => item.id !== session.id);
+              renderWorkoutLog();
+              renderMetrics();
+              showToast("Workout deleted.");
+            } catch (error) {
+              remove.disabled = false;
+              showToast(error.message);
+            }
+          });
+          actions.append(remove);
+        }
+        row.append(actions);
+        rows.append(row);
+      });
+    }
+    function weightHistory() {
+      // Exercise name -> Map(date -> heaviest kg that day), merging Today check-offs and Training logs.
+      const history = new Map();
+      const add = (name, date, kg) => {
+        const weight = finiteOrNull(kg);
+        if (!name || !date || weight === null || weight <= 0) return;
+        if (!history.has(name)) history.set(name, new Map());
+        const days = history.get(name);
+        days.set(date, Math.max(days.get(date) ?? 0, weight));
+      };
+      Object.entries(state.weights).forEach(([key, byOrder]) => {
+        const [date, planId] = key.split(":");
+        const plan = plans.find(item => item.planId === Number(planId));
+        Object.entries(byOrder || {}).forEach(([order, kg]) => add(plan?.exercises[Number(order)]?.[0], date, kg));
+      });
+      exerciseLogs.forEach(log => { if (log.entryType !== "time") add(log.exerciseName, log.date, log.weightKg); });
+      return history;
+    }
+    function renderStrengthProgress() {
+      const picker = document.getElementById("strength-exercise");
+      if (!picker || !plans.length) return;
+      const history = weightHistory();
+      const names = [...history.keys()].sort((left, right) => left.localeCompare(right));
+      document.getElementById("strength-empty").hidden = names.length > 0;
+      document.getElementById("strength-content").hidden = names.length === 0;
+      document.getElementById("strength-note").textContent = names.length ? `${names.length} exercise${names.length === 1 ? "" : "s"} tracked` : "";
+      if (!names.length) return;
+      const previous = picker.value;
+      picker.replaceChildren(...names.map(name => new Option(name, name)));
+      if (names.includes(previous)) picker.value = previous;
+      else {
+        // Default to the exercise logged most recently.
+        const latest = names.map(name => [name, [...history.get(name).keys()].sort().pop()]).sort((left, right) => right[1].localeCompare(left[1]))[0];
+        picker.value = latest[0];
+      }
+      const points = [...history.get(picker.value).entries()].sort((left, right) => left[0].localeCompare(right[0])).map(([date, kg]) => ({ date, kg }));
+      const first = points[0];
+      const latest = points[points.length - 1];
+      const best = points.reduce((top, point) => point.kg > top.kg ? point : top, first);
+      const fourWeeksAgo = dateKey(shiftDate(today, -28));
+      const baseline = [...points].reverse().find(point => point.date <= fourWeeksAgo) || first;
+      const formatKg = kg => `${formatNumber(kg, kg % 1 ? 1 : 0)} kg`;
+      const formatChange = change => change === 0 ? "No change" : `${change > 0 ? "+" : ""}${formatKg(change)}`;
+      const shortDate = key => parseDateKey(key).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const stats = [
+        [formatKg(latest.kg), `Latest · ${shortDate(latest.date)}`],
+        [formatKg(best.kg), `Best · ${shortDate(best.date)}`],
+        [points.length > 1 ? formatChange(latest.kg - first.kg) : "—", `Since ${shortDate(first.date)}`],
+        [points.length > 1 && baseline !== latest ? formatChange(latest.kg - baseline.kg) : "—", "Last 4 weeks"]
+      ];
+      document.getElementById("strength-stats").replaceChildren(...stats.map(([value, label]) => {
+        const item = makeElement("div", "history-item");
+        item.append(makeElement("div", "history-number", value), makeElement("div", "history-label", label));
+        return item;
+      }));
+      const width = 640;
+      const height = 200;
+      const left = 44;
+      const right = 12;
+      const top = 14;
+      const bottom = 26;
+      const minKg = Math.min(...points.map(point => point.kg));
+      const maxKg = Math.max(...points.map(point => point.kg));
+      const pad = Math.max(2.5, (maxKg - minKg) * 0.15);
+      const low = Math.max(0, minKg - pad);
+      const high = maxKg + pad;
+      const firstTime = parseDateKey(first.date).getTime();
+      const span = Math.max(1, parseDateKey(latest.date).getTime() - firstTime);
+      const x = point => points.length === 1 ? (left + width - right) / 2 : left + (parseDateKey(point.date).getTime() - firstTime) / span * (width - left - right);
+      const y = kg => top + (high - kg) / (high - low) * (height - top - bottom);
+      let shapes = "";
+      [low, (low + high) / 2, high].forEach(tick => {
+        shapes += `<line x1="${left}" x2="${width - right}" y1="${y(tick)}" y2="${y(tick)}" stroke="#24454D" stroke-width="1"/>`;
+        shapes += `<text x="${left - 8}" y="${y(tick) + 3}" text-anchor="end" fill="#A8977E" font-family="DM Mono, monospace" font-size="7">${formatNumber(tick, 0)}</text>`;
+      });
+      if (points.length > 1) shapes += `<path d="${points.map((point, index) => `${index ? "L" : "M"}${x(point).toFixed(1)},${y(point.kg).toFixed(1)}`).join(" ")}" fill="none" stroke="#C07E50" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      points.forEach(point => {
+        const isBest = point === best;
+        shapes += `<circle cx="${x(point)}" cy="${y(point.kg)}" r="${isBest ? 5 : 3.5}" fill="${isBest ? "#D8C0A0" : "#C07E50"}" stroke="#0D262D" stroke-width="2"><title>${shortDate(point.date)}: ${formatKg(point.kg)}</title></circle>`;
+      });
+      shapes += `<text x="${left}" y="${height - 6}" fill="#A8977E" font-family="DM Mono, monospace" font-size="7">${shortDate(first.date)}</text>`;
+      if (points.length > 1) shapes += `<text x="${width - right}" y="${height - 6}" text-anchor="end" fill="#A8977E" font-family="DM Mono, monospace" font-size="7">${shortDate(latest.date)}</text>`;
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      svg.setAttribute("role", "img");
+      svg.setAttribute("aria-label", `${picker.value} weight by day: ${points.map(point => `${shortDate(point.date)} ${formatKg(point.kg)}`).join(", ")}. Best ${formatKg(best.kg)}.`);
+      svg.innerHTML = shapes;
+      document.getElementById("strength-chart").replaceChildren(svg);
+    }
+    document.getElementById("strength-exercise").addEventListener("change", renderStrengthProgress);
+    function renderVacations() {
+      const list = document.getElementById("vacation-list");
+      const todayKey = dateKey(today);
+      const shortDate = key => parseDateKey(key).toLocaleDateString("en-US", { month: "short", day: "numeric", year: key.slice(0, 4) === todayKey.slice(0, 4) ? undefined : "numeric" });
+      // Current and upcoming first, then the most recent past ones.
+      const ordered = [...vacations].sort((left, right) => (left.endDate < todayKey) - (right.endDate < todayKey) || (left.endDate < todayKey ? right.startDate.localeCompare(left.startDate) : left.startDate.localeCompare(right.startDate)));
+      list.replaceChildren(...ordered.slice(0, 6).map(vacation => {
+        const item = makeElement("li");
+        const text = makeElement("div", "", vacation.startDate === vacation.endDate ? shortDate(vacation.startDate) : `${shortDate(vacation.startDate)} – ${shortDate(vacation.endDate)}`);
+        const status = vacation.endDate < todayKey ? "Past" : vacation.startDate <= todayKey ? "Now" : "Upcoming";
+        text.append(makeElement("small", "", vacation.label ? `${status} · ${vacation.label}` : status));
+        const remove = makeElement("button", "delete-log", "×");
+        remove.type = "button";
+        remove.setAttribute("aria-label", `Delete vacation ${text.firstChild.textContent}`);
+        remove.addEventListener("click", async () => {
+          remove.disabled = true;
+          try {
+            await apiRequest(`/api/vacations/${encodeURIComponent(vacation.id)}`, { method: "DELETE" });
+            vacations = vacations.filter(item => item.id !== vacation.id);
+            renderWorkoutLog();
+            showToast("Vacation removed.");
+          } catch (error) {
+            remove.disabled = false;
+            showToast(error.message);
+          }
+        });
+        item.append(text, remove);
+        return item;
+      }));
+    }
+    document.getElementById("vacation-start").addEventListener("change", event => {
+      const end = document.getElementById("vacation-end");
+      end.min = event.target.value;
+      if (!end.value || end.value < event.target.value) end.value = event.target.value;
+    });
+    document.getElementById("vacation-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const startDate = document.getElementById("vacation-start").value;
+      const endDate = document.getElementById("vacation-end").value;
+      const label = document.getElementById("vacation-label").value.trim();
+      if (!startDate || !endDate || endDate < startDate) { showToast("Pick a start date and an end date on or after it."); return; }
+      const saveButton = document.getElementById("vacation-save");
+      saveButton.disabled = true;
+      try {
+        const result = await apiRequest("/api/vacations", { method: "POST", body: { startDate, endDate, label } });
+        vacations.push(result.vacation);
+        event.target.reset();
+        renderWorkoutLog();
+        showToast("Vacation saved.");
+      } catch (error) {
+        showToast(error.message);
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+    document.getElementById("workout-entry-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const date = document.getElementById("workout-entry-date").value;
+      const planId = Number(document.getElementById("workout-entry-plan").value);
+      const durationMinutes = Math.round(Number(document.getElementById("workout-entry-minutes").value));
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > dateKey(today)) { showToast("Pick today or an earlier date."); return; }
+      if (!Number.isFinite(durationMinutes) || durationMinutes < 1 || durationMinutes > 600) { showToast("Enter between 1 and 600 minutes."); return; }
+      const saveButton = document.getElementById("workout-entry-save");
+      saveButton.disabled = true;
+      try {
+        const result = await apiRequest("/api/sessions", { method: "POST", body: { date, planId, durationMinutes } });
+        state.sessions.push({ id: result.id, date, planId, durationMinutes, completedAt: result.completedAt || new Date().toISOString() });
+        selectedWorkoutDate = date;
+        renderWorkoutLog();
+        renderMetricWeekOptions();
+        renderMetrics();
+        showToast(`Workout saved · ${durationMinutes} min on ${parseDateKey(date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}.`);
+      } catch (error) {
+        showToast(error.message);
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+    document.getElementById("exercise-category").addEventListener("change", renderExerciseLibrary);
+    document.getElementById("exercise-search").addEventListener("input", renderExerciseLibrary);
+    document.getElementById("selected-exercise").addEventListener("change", () => {
+      updateLogFields();
+      renderExerciseLibrary();
+    });
+    document.getElementById("metric-week-select").addEventListener("change", renderMetrics);
+    document.getElementById("intensity-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const changed = [...document.querySelectorAll("#intensity-days input")].filter(input => input.value !== input.dataset.original);
+      if (!changed.length) {
+        showToast("No changes to save");
+        return;
+      }
+      const saveButton = document.getElementById("intensity-save");
+      saveButton.disabled = true;
+      try {
+        for (const input of changed) {
+          const minutes = input.value === "" ? null : Math.round(Number(input.value));
+          if (minutes !== null && (!Number.isFinite(minutes) || minutes < 0 || minutes > 1440)) throw new Error("Enter minutes between 0 and 1440.");
+          await apiRequest("/api/intensity-minutes", { method: "POST", body: { date: input.dataset.date, minutes } });
+          intensityLogs = intensityLogs.filter(log => log.date !== input.dataset.date);
+          if (minutes !== null) intensityLogs.push({ date: input.dataset.date, minutes });
+        }
+        showToast("Intensity minutes saved");
+        renderMetrics();
+      } catch (error) {
+        showToast(error.message);
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+    document.getElementById("today-cardio-select").addEventListener("change", updateTodayCardioControls);
+    document.getElementById("add-today-cardio").addEventListener("click", async () => {
+      const selected = exerciseCatalog.find(item => item.exerciseId === document.getElementById("today-cardio-select").value);
+      if (!selected) return;
+      const button = document.getElementById("add-today-cardio");
+      button.disabled = true;
+      try {
+        const result = await apiRequest("/api/exercise-logs", {
+          method: "POST",
+          body: {
+            exerciseId: selected.exerciseId,
+            exerciseName: selected.name,
+            category: selected.category,
+            entryType: "time",
+            date: dateKey(today),
+            durationMinutes: Number(document.getElementById("today-cardio-duration").value)
+          }
+        });
+        exerciseLogs.unshift(result.exerciseLog || {
+          id: crypto.randomUUID(), exerciseId: selected.exerciseId, exerciseName: selected.name,
+          category: selected.category, entryType: "time", date: dateKey(today),
+          durationMinutes: Number(document.getElementById("today-cardio-duration").value), createdAt: new Date().toISOString()
+        });
+        state.exerciseLogs = exerciseLogs;
+        document.getElementById("today-cardio-select").value = "";
+        updateTodayCardioControls();
+        renderExerciseHistory();
+        renderMetrics();
+        showToast(`${selected.name} added to today's activity.`);
+      } catch (error) {
+        showToast(error.message);
+        updateTodayCardioControls();
+      }
+    });
+    document.getElementById("exercise-log-form").addEventListener("submit", async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const selected = exerciseCatalog.find(item => item.exerciseId === document.getElementById("selected-exercise").value);
+      if (!selected) return;
+      const body = {
+        exerciseId: selected.exerciseId,
+        exerciseName: selected.name,
+        category: selected.category,
+        entryType: selected.entryType,
+        date: dateKey(today)
+      };
+      if (selected.entryType === "time") {
+        body.durationMinutes = Number(document.getElementById("log-duration").value);
+      } else {
+        body.sets = Number(document.getElementById("log-sets").value);
+        body.reps = Number(document.getElementById("log-reps").value);
+        const weight = document.getElementById("log-weight").value;
+        body.weightKg = weight === "" ? null : Number(weight);
+      }
+      const submit = form.querySelector('[type="submit"]');
+      const error = document.getElementById("log-error");
+      submit.disabled = true;
+      error.textContent = "";
+      try {
+        const result = await apiRequest("/api/exercise-logs", { method: "POST", body });
+        const log = result.exerciseLog || {
+          ...body,
+          id: crypto.randomUUID(),
+          createdAt: new Date().toISOString()
+        };
+        exerciseLogs.unshift(log);
+        state.exerciseLogs = exerciseLogs;
+        renderExerciseHistory();
+        renderMetrics();
+        showToast("Exercise saved to your training history.");
+        form.reset();
+        document.getElementById("selected-exercise").value = selected.exerciseId;
+        updateLogFields();
+      } catch (requestError) {
+        error.textContent = requestError.message;
+      } finally {
+        submit.disabled = false;
+      }
+    });
+    function render() {
+      const plan = getTodayPlan();
+      // A "No training" day keeps the rotation where it is, so this plan comes up again tomorrow.
+      const resting = restDays.has(dateKey(today));
+      const title = resting ? "Rest day" : plan.title;
+      document.getElementById("workout-title").textContent = title;
+      document.getElementById("workout-title").style.fontSize = title.length > 18 ? "24px" : "27px";
+      document.getElementById("workout-subtitle").textContent = resting ? `${plan.title} moves to tomorrow.` : plan.subtitle;
+      const cycleLabel = ["PUSH", "PULL", "LEGS"][cyclePlanIds.indexOf(todayPlanId)];
+      document.getElementById("workout-label").textContent = resting ? "NO TRAINING TODAY" : `${cycleLabel} · ${plan.duration} MIN`;
+      document.getElementById("start-button").hidden = resting && !sessionStarted;
+      document.getElementById("today-exercises").hidden = resting;
+      const planSelect = document.getElementById("today-plan-select");
+      planSelect.replaceChildren(new Option(plan.title, "train"), new Option(`No training — move ${plan.title} to tomorrow`, "rest"));
+      planSelect.value = resting ? "rest" : "train";
+      document.getElementById("today-plan-note").textContent = resting ? "Rest day logged. Switch back any time today." : "Not training today? Choose No training and this workout moves to tomorrow.";
+      renderExercises();
+      renderStats();
+    }
+    document.getElementById("today-plan-select").addEventListener("change", async event => {
+      const rest = event.target.value === "rest";
+      if (rest && sessionStarted) {
+        showToast("Finish or reset the running session first.");
+        event.target.value = "train";
+        return;
+      }
+      const date = dateKey(today);
+      event.target.disabled = true;
+      try {
+        await apiRequest("/api/rest-days", { method: "POST", body: { date, rest, planId: rest ? todayPlanId : null } });
+        if (rest) { restDays.add(date); restPlans.set(date, todayPlanId); }
+        else { restDays.delete(date); restPlans.delete(date); }
+        render();
+        showToast(rest ? `${getTodayPlan().title} moved to tomorrow.` : `Back on: ${getTodayPlan().title}.`);
+      } catch (error) {
+        event.target.value = rest ? "train" : "rest";
+        showToast(error.message);
+      } finally {
+        event.target.disabled = false;
+      }
+    });
+    function vacationFor(key) {
+      return vacations.find(vacation => key >= vacation.startDate && key <= vacation.endDate);
+    }
+    function renderInactivityWarning() {
+      const box = document.getElementById("inactivity-warning");
+      const todayKey = dateKey(today);
+      const longDate = key => parseDateKey(key).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      const vacation = vacationFor(todayKey);
+      if (vacation) {
+        box.className = "inactivity-warning vacation";
+        box.replaceChildren(makeElement("strong", "", "On vacation"), document.createTextNode(` until ${longDate(vacation.endDate)}${vacation.label ? ` (${vacation.label})` : ""}. The no-workout warning is paused.`));
+        box.hidden = false;
+        return;
+      }
+      const days = workoutDays();
+      const lastWorkout = [...days.keys()].filter(key => key <= todayKey).sort().pop();
+      let missed = 0;
+      if (lastWorkout && lastWorkout < todayKey) {
+        // Count full days since the last workout; vacation days don't count, today isn't over yet.
+        for (let date = shiftDate(parseDateKey(lastWorkout), 1); dateKey(date) < todayKey; date = shiftDate(date, 1)) {
+          if (!vacationFor(dateKey(date))) missed += 1;
+        }
+      }
+      if (missed < 3) {
+        box.hidden = true;
+        return;
+      }
+      const link = makeElement("a", "", "add vacation dates");
+      link.href = "#training";
+      link.addEventListener("click", event => {
+        event.preventDefault();
+        setActiveView("training");
+        document.getElementById("vacation-start").focus();
+      });
+      box.className = "inactivity-warning";
+      box.replaceChildren(makeElement("strong", "", `No workout in ${missed} days.`), document.createTextNode(` Your last one was ${longDate(lastWorkout)}. Get a session in today, or `), link, document.createTextNode(" if you're away."));
+      box.hidden = false;
+    }
+    const startButton = document.getElementById("start-button");
+    const finishButton = document.getElementById("finish-button");
+    function updateTimerButton() {
+      startButton.innerHTML = `<span aria-hidden="true">Ⅱ</span> ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} · Pause`;
+    }
+    startButton.addEventListener("click", () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        startButton.innerHTML = `<span aria-hidden="true">▶</span> Resume · ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+        startButton.classList.remove("dark");
+        showToast("Workout paused");
+        return;
+      }
+      sessionStarted = true;
+      finishButton.hidden = false;
+      startButton.classList.add("dark");
+      timerInterval = setInterval(() => { seconds += 1; updateTimerButton(); }, 1000);
+      updateTimerButton();
+    });
+    finishButton.addEventListener("click", async () => {
+      if (!sessionStarted) return;
+      clearInterval(timerInterval);
+      timerInterval = null;
+      startButton.disabled = true;
+      finishButton.disabled = true;
+      const date = dateKey(today);
+      const durationMinutes = Math.max(1, Math.round(seconds / 60));
+      try {
+        const result = await apiRequest("/api/sessions", { method: "POST", body: { date, planId: todayPlanId, durationMinutes } });
+        state.sessions.push({ id: result.id, date, planId: todayPlanId, durationMinutes, completedAt: result.completedAt || new Date().toISOString() });
+      } catch (error) {
+        showToast(error.message);
+        startButton.disabled = false;
+        finishButton.disabled = false;
+        timerInterval = setInterval(() => { seconds += 1; updateTimerButton(); }, 1000);
+        return;
+      }
+      sessionStarted = false;
+      seconds = 0;
+      finishButton.hidden = true;
+      finishButton.disabled = false;
+      startButton.disabled = false;
+      startButton.innerHTML = "<span aria-hidden=\"true\">▶</span> Start workout";
+      startButton.classList.remove("dark");
+      render();
+      showToast(`Session logged · ${durationMinutes} min of workout time.`);
+    });
+    restoreMemberSession();
+  </script>
+</body>
+</html>
