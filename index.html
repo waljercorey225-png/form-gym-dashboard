@@ -217,7 +217,7 @@
     .legend-swatch.in-bed { background: #725B4B; }
     .legend-swatch.late { background: #C07E50; }
     .legend-swatch.stress { border-radius: 50%; background: var(--amber); }
-    .trend-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; }
+    .trend-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
     .trend-card { min-width: 0; }
     .trend-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
     .trend-label { color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
@@ -270,9 +270,6 @@
     .table-input:focus { outline: 2px solid var(--amber); outline-offset: 0; border-color: var(--amber); }
     .table-input.typed { color: #7A4A26; font-weight: 800; border-color: var(--amber); }
     .table-input:disabled { opacity: .45; }
-    .intensity-form { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-top: 12px; }
-    .intensity-days { display: grid; flex: 1 1 520px; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
-    .intensity-days .access-input { height: 40px; padding: 0 8px; font-family: var(--mono); text-align: center; }
     .metric-card-label { color: var(--muted); font: 9px var(--mono); text-transform: uppercase; }
     .metric-card-value { margin-top: 10px; font-size: 24px; font-weight: 800; white-space: nowrap; }
     .metric-card-change { display: inline-flex; align-items: center; gap: 4px; margin-top: 7px; font: 10px var(--mono); }
@@ -384,7 +381,6 @@
       .metric-panel { padding: 15px 14px; }
       .sleep-chart, .recovery-chart { gap: 5px; }
       .trend-grid { grid-template-columns: 1fr; }
-      .intensity-days { flex-basis: 100%; grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .data-table { min-width: 580px; }
       .exercise { grid-template-columns: 30px minmax(0, 1fr) 20px; row-gap: 8px; }
       .exercise-inputs { grid-column: 2 / -1; grid-row: 2; padding-right: 28px; }
@@ -527,7 +523,7 @@
               <div class="workout-calendar-head" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
               <div class="workout-calendar" id="workout-calendar"></div>
               <div class="steps-legend" aria-hidden="true"><span><i class="legend-swatch workout"></i>Workout</span><span><i class="legend-swatch activity"></i>Exercises logged</span><span><i class="legend-swatch rest"></i>No training</span><span><i class="legend-swatch vacation"></i>Vacation</span><span><i class="legend-swatch today"></i>Today</span></div>
-              <p class="metric-footnote">Select a day to add a workout for it. Workout time counts as intensity minutes on days without watch data.</p>
+              <p class="metric-footnote">Select a day to add a workout for it.</p>
             </div>
             <div class="workout-side">
               <form class="aside-card workout-entry-form" id="workout-entry-form">
@@ -615,7 +611,7 @@
           </section>
         </div>
         <section class="metric-panel metric-wide-panel" aria-labelledby="trends-heading">
-          <div class="section-heading"><h2 id="trends-heading">12-week trends</h2><span class="section-note">Weekly averages · intensity is a weekly total</span></div>
+          <div class="section-heading"><h2 id="trends-heading">12-week trends</h2><span class="section-note">Weekly averages</span></div>
           <div class="trend-grid" id="trend-grid"></div>
         </section>
         <section class="metric-panel metric-wide-panel" aria-labelledby="recovery-heading">
@@ -638,16 +634,8 @@
         </section>
         <section class="metric-table-section">
           <div class="section-heading"><h2>Day by day</h2><span class="section-note" id="daily-metric-range"></span></div>
-          <div class="table-scroll"><table class="data-table daily-metric-table"><thead><tr><th>Day</th><th>Sleep</th><th>In bed</th><th>Score</th><th>Bedtime</th><th>HRV</th><th>Rest HR</th><th>Steps</th><th>Int. min</th><th>Stress</th><th>BB peak</th><th>Readiness</th></tr></thead><tbody id="daily-metric-rows"></tbody></table></div>
+          <div class="table-scroll"><table class="data-table daily-metric-table"><thead><tr><th>Day</th><th>Sleep</th><th>In bed</th><th>Score</th><th>Bedtime</th><th>HRV</th><th>Rest HR</th><th>Steps</th><th>Stress</th><th>BB peak</th><th>Readiness</th></tr></thead><tbody id="daily-metric-rows"></tbody></table></div>
           <p class="metric-footnote">Sleep counts toward the morning you woke up. Type in the Steps column to update a day; typed steps are highlighted and replace watch data. Clear one to go back.</p>
-        </section>
-        <section class="metric-table-section" aria-labelledby="intensity-log-heading">
-          <div class="section-heading"><h2 id="intensity-log-heading">Log intensity minutes</h2><span class="section-note">Overrides watch data</span></div>
-          <p class="metric-footnote">Type each day's intensity minutes for the selected week. Leave a day blank to use the watch, or your workout time when there's no watch data.</p>
-          <form class="intensity-form" id="intensity-form">
-            <div class="intensity-days" id="intensity-days"></div>
-            <button class="button" type="submit" id="intensity-save">Save minutes</button>
-          </form>
         </section>
       </section>
     </main>
@@ -1036,7 +1024,6 @@
     let exerciseCatalog = [];
     let garminMetrics = { activities: [], daily: [], health: [], stress: [], bodyBattery: [], sleep: [], readiness: [], trainingLoad: [], endurance: [] };
     let exerciseLogs = [];
-    let intensityLogs = [];
     let restDays = new Set();
     let restPlans = new Map();
     let stepEntries = [];
@@ -1128,7 +1115,6 @@
       exerciseCatalog = data.catalog || [];
       exerciseLogs = data.exerciseLogs || [];
       garminMetrics = { ...garminMetrics, ...(data.garmin || {}) };
-      intensityLogs = data.intensityLogs || [];
       stepEntries = data.stepEntries || [];
       const restEntries = (data.restDays || []).map(entry => typeof entry === "string" ? { date: entry, planId: null } : entry);
       restDays = new Set(restEntries.map(entry => entry.date));
@@ -1259,7 +1245,6 @@
         ...stepRecords.map(record => record.date),
         ...state.sessions.map(record => record.date),
         ...exerciseLogs.map(record => record.date),
-        ...intensityLogs.map(record => record.date),
         ...stepEntries.map(record => record.date),
         ...garminMetrics.daily.map(record => record.date),
         ...garminMetrics.health.map(record => record.date),
@@ -1294,7 +1279,6 @@
       sleepScore: { label: "Sleep score", unit: "/100", better: "up" },
       hrv: { label: "Overnight HRV", unit: "ms", better: "up" },
       restingHr: { label: "Resting heart rate", unit: "bpm", better: "down" },
-      intensity: { label: "Intensity minutes", better: "up", weeklyTotal: true },
       steps: { label: "Steps per day", unit: "", better: "up" },
       stress: { label: "Stress", unit: "/100", better: "down" },
       bodyBattery: { label: "Body Battery peak", unit: "/100", better: "up" }
@@ -1314,8 +1298,7 @@
         bodyBattery: byDate(garminMetrics.bodyBattery),
         readiness: byDate(garminMetrics.readiness),
         steps: byDate(stepRecords),
-        stepEntries: byDate(stepEntries),
-        intensity: byDate(intensityLogs)
+        stepEntries: byDate(stepEntries)
       };
     }
     function finiteOrNull(value) {
@@ -1332,12 +1315,6 @@
         case "sleepScore": return finiteOrNull(lookup.sleep.get(key)?.score);
         case "hrv": return finiteOrNull(lookup.health.get(key)?.hrv);
         case "restingHr": return finiteOrNull(lookup.daily.get(key)?.restingHeartRate);
-        case "intensity": {
-          // Typed minutes win, then the watch; workout time fills days the watch didn't record.
-          const manual = lookup.intensity.get(key);
-          if (manual) return finiteOrNull(manual.minutes);
-          return finiteOrNull(lookup.daily.get(key)?.intensityMinutes) ?? workoutMinutes(key);
-        }
         case "steps": return finiteOrNull(lookup.stepEntries.get(key)?.steps) ?? finiteOrNull(lookup.steps.get(key)?.steps) ?? finiteOrNull(lookup.daily.get(key)?.steps);
         case "stress": return finiteOrNull(lookup.stress.get(key)?.value);
         case "bodyBattery": return finiteOrNull(lookup.bodyBattery.get(key)?.value);
@@ -1355,18 +1332,6 @@
         .sort((left, right) => right.date.localeCompare(left.date))[0];
       return recent ? Number(recent.goal) : 8500;
     }
-    function workoutMinutes(key) {
-      const sessionMinutes = state.sessions.filter(session => session.date === key).reduce((sum, session) => sum + (Number(session.durationMinutes) || 0), 0);
-      const cardioMinutes = exerciseLogs.filter(log => log.date === key && log.entryType === "time").reduce((sum, log) => sum + (Number(log.durationMinutes) || 0), 0);
-      const activityMinutes = garminMetrics.activities.filter(activity => activity.date === key).reduce((sum, activity) => sum + (Number(activity.durationMinutes) || 0), 0);
-      const total = sessionMinutes + cardioMinutes + activityMinutes;
-      return total > 0 ? total : null;
-    }
-    function intensitySource(key) {
-      if (dailyLookup.intensity.has(key)) return "Typed in";
-      if (finiteOrNull(dailyLookup.daily.get(key)?.intensityMinutes) !== null) return "Watch";
-      return workoutMinutes(key) !== null ? "Workout time" : "";
-    }
     function weekDays(start) {
       return Array.from({ length: 7 }, (_, index) => shiftDate(start, index));
     }
@@ -1378,14 +1343,10 @@
       const values = weekDays(start).map(date => dayMetric(id, dateKey(date))).filter(value => value !== null);
       if (!values.length) return null;
       const total = values.reduce((sum, value) => sum + value, 0);
-      return metricDefinitions[id]?.weeklyTotal ? total : total / values.length;
+      return total / values.length;
     }
     function priorAverage(id, start, weeks = 4) {
       return averageOf(Array.from({ length: weeks }, (_, index) => weekMetric(id, shiftDate(start, -7 * (index + 1)))));
-    }
-    function intensityGoal() {
-      const goals = garminMetrics.daily.map(record => finiteOrNull(record.intensityGoal)).filter(value => value);
-      return goals.length ? goals[goals.length - 1] : 150;
     }
     function formatNumber(value, decimals = 0) {
       return value === null || !Number.isFinite(value) ? "—" : value.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -1420,7 +1381,6 @@
       }).filter(Boolean);
       renderSteps(weekSteps, start);
       renderDailyMetrics(start);
-      renderIntensityForm(start);
     }
     function renderMetricCards(start) {
       const cards = document.getElementById("metric-cards");
@@ -1432,8 +1392,7 @@
         const average = priorAverage(id, start);
         const card = makeElement("article", "metric-card");
         const valueElement = makeElement("div", "metric-card-value", formatNumber(value, decimals));
-        const unit = id === "intensity" ? `/ ${intensityGoal()}` : definition.unit;
-        if (unit && value !== null) valueElement.append(makeElement("small", "", unit));
+        if (definition.unit && value !== null) valueElement.append(makeElement("small", "", definition.unit));
         let changeClass = "neutral";
         let changeText = "No previous-week data";
         if (value !== null && previous !== null) {
@@ -1474,17 +1433,6 @@
         if (lateHours !== null && otherHours !== null && otherHours > lateHours) copy += ` You slept ${(otherHours - lateHours).toFixed(1)} h less on those nights.`;
         items.push({ level: "watch", title: "Late nights cost you sleep", copy: `${copy} Lights out by 11 PM is your biggest lever.` });
       }
-      const intensity = weekMetric("intensity", start);
-      const goal = intensityGoal();
-      if (intensity !== null) {
-        const shortfall = Math.round(goal - intensity);
-        if (shortfall > 0) {
-          const walks = Math.ceil(shortfall / 30);
-          items.push({ level: "watch", title: "Short on activity", copy: `${Math.round(intensity)} intensity minutes, ${shortfall} short of ${goal}. ${walks === 1 ? "One more brisk 30-minute walk would" : `About ${walks} brisk 30-minute walks would`} close it.` });
-        } else {
-          items.push({ level: "good", title: "Activity goal met", copy: `${Math.round(intensity)} intensity minutes against a goal of ${goal}.` });
-        }
-      }
       const hrv = weekMetric("hrv", start);
       const hrvAverage = priorAverage("hrv", start);
       if (hrv !== null && hrvAverage !== null && hrv < hrvAverage * 0.9) {
@@ -1501,7 +1449,7 @@
         items.push({ level: "watch", title: "Stress is running higher", copy: `Average stress ${Math.round(stress)} vs. ${Math.round(stressAverage)} over the past 4 weeks.` });
       }
       if (!items.length) {
-        items.push({ level: "watch", title: "Not enough watch data for this week", copy: "Sleep, HRV and intensity drive these tips. Add a newer Garmin export to the data folder, or log intensity minutes below." });
+        items.push({ level: "watch", title: "Not enough watch data for this week", copy: "Sleep and HRV drive these tips. Add a newer Garmin export to the data folder." });
       }
       const order = { fix: 0, watch: 1, good: 2 };
       return items.sort((left, right) => order[left.level] - order[right.level]);
@@ -1614,8 +1562,7 @@
       const trends = [
         { id: "sleep", label: "Sleep per night", unit: "h", decimals: 1, goal: 7, color: "#D8C0A0" },
         { id: "hrv", label: "Overnight HRV", unit: "ms", color: "#8FB3B8" },
-        { id: "restingHr", label: "Resting heart rate", unit: "bpm", color: "#C07E50" },
-        { id: "intensity", label: "Intensity minutes", unit: "min", goal: intensityGoal(), color: "#9C8270", bars: true }
+        { id: "restingHr", label: "Resting heart rate", unit: "bpm", color: "#C07E50" }
       ];
       const width = 240;
       const height = 86;
@@ -1629,12 +1576,13 @@
         head.append(makeElement("span", "trend-label", trend.label), makeElement("span", "trend-value", latest !== null ? `${formatNumber(latest, trend.decimals ?? 0)} ${trend.unit}` : "—"));
         card.append(head);
         const scaleValues = trend.goal ? [...known, trend.goal] : known;
-        let min = trend.bars ? 0 : Math.min(...scaleValues);
+        let min = Math.min(...scaleValues);
         let max = Math.max(...scaleValues);
         if (!scaleValues.length) { min = 0; max = 1; }
-        if (max === min) { max += 1; min -= trend.bars ? 0 : 1; }
+        if (max === min) { max += 1; min -= 1; }
         const spread = max - min;
-        if (!trend.bars) { min -= spread * 0.1; max += spread * 0.1; }
+        min -= spread * 0.1;
+        max += spread * 0.1;
         const x = index => pad + index * (width - pad * 2) / (weeks.length - 1);
         const y = value => height - pad - (value - min) / (max - min) * (height - pad * 2);
         let shapes = "";
@@ -1642,29 +1590,19 @@
           shapes += `<line x1="0" x2="${width}" y1="${y(trend.goal)}" y2="${y(trend.goal)}" stroke="#D8C0A0" stroke-dasharray="3 3" stroke-width="1"/>`;
           shapes += `<text x="${width}" y="${y(trend.goal) - 3}" text-anchor="end" fill="#D8C0A0" font-family="DM Mono, monospace" font-size="8">${trend.goal}</text>`;
         }
-        if (trend.bars) {
-          const barWidth = (width - pad * 2) / weeks.length * 0.6;
-          values.forEach((value, index) => {
-            if (value === null) return;
-            const top = y(value);
-            const opacity = index === values.length - 1 ? 1 : 0.45;
-            shapes += `<rect x="${x(index) - barWidth / 2}" y="${top}" width="${barWidth}" height="${Math.max(1, height - pad - top)}" rx="1" fill="${trend.color}" opacity="${opacity}"/>`;
-          });
-        } else {
-          let path = "";
-          let drawing = false;
-          values.forEach((value, index) => {
-            if (value === null) { drawing = false; return; }
-            path += `${drawing ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)} `;
-            drawing = true;
-          });
-          shapes += `<path d="${path}" fill="none" stroke="${trend.color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`;
-          values.forEach((value, index) => {
-            if (value === null) return;
-            const last = index === values.length - 1;
-            shapes += `<circle cx="${x(index)}" cy="${y(value)}" r="${last ? 4 : 1.8}" fill="${trend.color}"${last ? ' stroke="#123039" stroke-width="2"' : ""}/>`;
-          });
-        }
+        let path = "";
+        let drawing = false;
+        values.forEach((value, index) => {
+          if (value === null) { drawing = false; return; }
+          path += `${drawing ? "L" : "M"}${x(index).toFixed(1)},${y(value).toFixed(1)} `;
+          drawing = true;
+        });
+        shapes += `<path d="${path}" fill="none" stroke="${trend.color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`;
+        values.forEach((value, index) => {
+          if (value === null) return;
+          const last = index === values.length - 1;
+          shapes += `<circle cx="${x(index)}" cy="${y(value)}" r="${last ? 4 : 1.8}" fill="${trend.color}"${last ? ' stroke="#123039" stroke-width="2"' : ""}/>`;
+        });
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
         svg.setAttribute("role", "img");
@@ -1688,7 +1626,6 @@
         { id: "hrv" },
         { id: "restingHr" },
         { id: "steps" },
-        { id: "intensity" },
         { id: "stress" },
         { id: "bodyBattery" },
         { id: "readiness" }
@@ -1706,7 +1643,6 @@
           const cell = makeElement("td", "", value === null ? "—" : column.text ? value : formatNumber(value, column.decimals ?? 0));
           if (value === null) cell.className = "metric-no-data";
           else if (column.id === "bedtime" && isLateBedtime(value)) cell.className = "metric-change negative";
-          if (column.id === "intensity" && value !== null) cell.title = intensitySource(key);
           row.append(cell);
         });
         rows.append(row);
@@ -1757,27 +1693,6 @@
       });
       cell.append(input);
       return cell;
-    }
-    function renderIntensityForm(start) {
-      const container = document.getElementById("intensity-days");
-      container.replaceChildren();
-      weekDays(start).forEach(date => {
-        const key = dateKey(date);
-        const field = makeElement("label", "control-field");
-        const input = makeElement("input", "access-input");
-        input.type = "number";
-        input.min = "0";
-        input.max = "1440";
-        input.inputMode = "numeric";
-        input.dataset.date = key;
-        const manual = dailyLookup.intensity.get(key);
-        input.value = manual ? String(manual.minutes) : "";
-        input.dataset.original = input.value;
-        const fallback = finiteOrNull(dailyLookup.daily.get(key)?.intensityMinutes) ?? workoutMinutes(key);
-        input.placeholder = fallback !== null ? String(fallback) : "—";
-        field.append(makeElement("span", "", date.toLocaleDateString("en-US", { weekday: "short", day: "numeric" })), input);
-        container.append(field);
-      });
     }
     function showToast(message) {
       const toast = document.getElementById("toast");
@@ -2349,31 +2264,6 @@
       renderExerciseLibrary();
     });
     document.getElementById("metric-week-select").addEventListener("change", renderMetrics);
-    document.getElementById("intensity-form").addEventListener("submit", async event => {
-      event.preventDefault();
-      const changed = [...document.querySelectorAll("#intensity-days input")].filter(input => input.value !== input.dataset.original);
-      if (!changed.length) {
-        showToast("No changes to save");
-        return;
-      }
-      const saveButton = document.getElementById("intensity-save");
-      saveButton.disabled = true;
-      try {
-        for (const input of changed) {
-          const minutes = input.value === "" ? null : Math.round(Number(input.value));
-          if (minutes !== null && (!Number.isFinite(minutes) || minutes < 0 || minutes > 1440)) throw new Error("Enter minutes between 0 and 1440.");
-          await apiRequest("/api/intensity-minutes", { method: "POST", body: { date: input.dataset.date, minutes } });
-          intensityLogs = intensityLogs.filter(log => log.date !== input.dataset.date);
-          if (minutes !== null) intensityLogs.push({ date: input.dataset.date, minutes });
-        }
-        showToast("Intensity minutes saved");
-        renderMetrics();
-      } catch (error) {
-        showToast(error.message);
-      } finally {
-        saveButton.disabled = false;
-      }
-    });
     document.getElementById("today-cardio-select").addEventListener("change", updateTodayCardioControls);
     document.getElementById("add-today-cardio").addEventListener("click", async () => {
       const selected = exerciseCatalog.find(item => item.exerciseId === document.getElementById("today-cardio-select").value);

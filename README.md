@@ -17,7 +17,6 @@ Demo login: `corey` / `corey`.
 - `data/exercise_logs.csv` stores individual strength and timed exercise entries.
 - `data/exercise_completions.csv` stores exercise checkoffs.
 - `data/sessions.csv` stores completed sessions.
-- `data/intensity_minutes.csv` stores intensity minutes typed on the Metrics tab; they override the Garmin export for that day.
 - `data/Steps.csv` and the local Garmin archive provide weekly movement and health metrics.
 - `data/garmin-connect/` holds weekly CSV exports from Garmin Connect (Sleep, HRV Status, Resting Heart Rate, Stress, Body Battery, Steps). Drop new ones in and restart the server; they fill in or override the archive for the same dates.
 

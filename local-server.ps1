@@ -275,13 +275,10 @@ function Get-GarminDashboardMetrics {
         $gmtStart = Convert-GarminTimestamp $record.wellnessStartTimeGmt
         if ($localStart -and $gmtStart) { $utcOffsets[$date] = ($localStart - $gmtStart).TotalMinutes }
         $restingHeartRate = if ($null -ne $record.restingHeartRate) { [int]$record.restingHeartRate } elseif ($null -ne $record.currentDayRestingHeartRate) { [int]$record.currentDayRestingHeartRate } else { $null }
-        $intensityMinutes = if ($null -ne $record.moderateIntensityMinutes -or $null -ne $record.vigorousIntensityMinutes) { [int]$record.moderateIntensityMinutes + 2 * [int]$record.vigorousIntensityMinutes } else { $null }
         $lowest = @($record.bodyBattery.bodyBatteryStatList | Where-Object { $_.bodyBatteryStatType -eq 'LOWEST' } | Select-Object -First 1)
         [void]$dailyRows.Add([pscustomobject]@{
             date = $date
             restingHeartRate = $restingHeartRate
-            intensityMinutes = $intensityMinutes
-            intensityGoal = if ($null -ne $record.userIntensityMinutesGoal) { [int]$record.userIntensityMinutesGoal } else { $null }
             steps = if ($null -ne $record.totalSteps) { [int]$record.totalSteps } else { $null }
             stepGoal = if ($null -ne $record.dailyStepGoal) { [int]$record.dailyStepGoal } else { $null }
             bodyBatteryLow = if ($lowest.Count -and $null -ne $lowest[0].statsValue -and [double]$lowest[0].statsValue -ge 0) { [int]$lowest[0].statsValue } else { $null }
@@ -395,12 +392,6 @@ function Send-Dashboard {
             createdAt = $_.created_at
         }
     })
-    $intensityLogs = @()
-    if (Test-Path -LiteralPath (Join-Path $dataDirectory 'intensity_minutes.csv')) {
-        $intensityLogs = @(Get-CsvRows 'intensity_minutes.csv' | Where-Object { $_.username -ceq $Member.username } | ForEach-Object {
-            [pscustomobject]@{ date = $_.date; minutes = [int]$_.minutes }
-        })
-    }
     $restDays = @()
     if (Test-Path -LiteralPath (Join-Path $dataDirectory 'rest_days.csv')) {
         $restDays = @(Get-CsvRows 'rest_days.csv' | Where-Object { $_.username -ceq $Member.username } | ForEach-Object {
@@ -424,7 +415,6 @@ function Send-Dashboard {
         stepEntries = $stepEntries
         restDays = $restDays
         vacations = $vacations
-        intensityLogs = $intensityLogs
         member = @{ username = $Member.username; name = $Member.display_name; initials = $Member.initials; subscriptionActive = $true }
         plans = $plans
         exercises = $exercises
@@ -700,32 +690,6 @@ try {
                 $remaining = @($rows | Where-Object { -not ($_.vacation_id -ceq $vacationId -and $_.username -ceq $member.username) })
                 Save-CsvRows 'vacations.csv' $remaining @('vacation_id', 'username', 'start_date', 'end_date', 'label', 'created_at')
                 Send-Json $context 200 @{ status = 'deleted' }
-                continue
-            }
-            if ($method -eq 'POST' -and $path -eq '/api/intensity-minutes') {
-                $body = Read-JsonBody $context
-                $date = [string]$body.date
-                $parsedDate = [datetime]::MinValue
-                if ($date -notmatch '^\d{4}-\d{2}-\d{2}$' -or -not [datetime]::TryParseExact($date, 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::None, [ref]$parsedDate)) {
-                    Send-Json $context 400 @{ error = 'invalid_intensity_date' }; continue
-                }
-                $minutes = $null
-                if ($null -ne $body.minutes -and [string]$body.minutes -ne '') {
-                    $minutes = [int]$body.minutes
-                    if ($minutes -lt 0 -or $minutes -gt 1440) { Send-Json $context 400 @{ error = 'invalid_intensity_minutes' }; continue }
-                }
-                $existing = @()
-                if (Test-Path -LiteralPath (Join-Path $dataDirectory 'intensity_minutes.csv')) { $existing = @(Get-CsvRows 'intensity_minutes.csv') }
-                $rows = [System.Collections.Generic.List[object]]::new()
-                foreach ($row in $existing) {
-                    if ($row.username -ceq $member.username -and $row.date -ceq $date) { continue }
-                    [void]$rows.Add($row)
-                }
-                if ($null -ne $minutes) {
-                    [void]$rows.Add([pscustomobject]@{ username = $member.username; date = $date; minutes = $minutes; updated_at = [datetime]::UtcNow.ToString('o') })
-                }
-                Save-CsvRows 'intensity_minutes.csv' $rows.ToArray() @('username', 'date', 'minutes', 'updated_at')
-                Send-Json $context 200 @{ status = 'saved'; date = $date; minutes = $minutes }
                 continue
             }
             if ($method -eq 'DELETE' -and $path -match '^/api/exercise-logs/([a-f0-9]{32})$') {
